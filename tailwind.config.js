@@ -16,6 +16,24 @@ export default {
         textSecondary: '#bac2de',// Subtext1
         textMuted: '#7f849c',    // Overlay1
 
+        // Aliases anidados para que clases tipo `text-text-primary`,
+        // `bg-bg-surface`, etc. resuelvan correctamente. Tailwind genera
+        // utilidades a partir de objetos anidados separando con guion.
+        text: {
+          primary: '#cdd6f4',
+          secondary: '#bac2de',
+          muted: '#7f849c',
+        },
+        surface: {
+          DEFAULT: '#181825',
+          base: '#11111b',
+          elevated: '#313244',
+        },
+        border: {
+          DEFAULT: '#45475a',
+          subtle: '#313244',
+        },
+
         // Compatibilidad con variables previas mapeadas a Catppuccin Mocha
         bg: {
           DEFAULT: '#11111b',   // Crust

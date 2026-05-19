@@ -185,7 +185,7 @@ export default function FloatingTerminal() {
             setShowTip(false);
           }}
           onMouseEnter={() => setShowTip(false)}
-          className="fixed bottom-20 right-4 z-40 flex items-center gap-2 rounded border border-borderCustom bg-bgSurface/95 backdrop-blur-md px-3 py-1.5 font-mono text-[10px] text-textSecondary shadow-glow select-none cursor-pointer animate-bounce transition-all duration-300 hover:border-accent-mauve/50"
+          className="fixed bottom-20 right-4 z-40 flex items-center gap-2 rounded-md border border-borderCustom bg-bgSurface/95 backdrop-blur-md px-3 py-1.5 font-mono text-[10px] text-textSecondary shadow-glow select-none cursor-pointer animate-bounce transition-all duration-300 hover:border-accent-mauve/60"
         >
           {/* LED Verde Parpadeante */}
           <span className="relative flex h-2 w-2">
@@ -205,7 +205,7 @@ export default function FloatingTerminal() {
         }}
         onMouseEnter={() => setShowTip(false)}
         className={cn(
-          'fixed bottom-4 right-4 z-40 flex items-center gap-2.5 rounded-full border bg-bgSurface/95 backdrop-blur-md px-4.5 py-2.5 font-mono text-xs shadow-lg transition-all duration-300 select-none outline-none',
+          'fixed bottom-4 right-4 z-40 inline-flex items-center gap-2.5 rounded-full border bg-bgSurface/95 backdrop-blur-md px-4 py-2.5 font-mono text-xs shadow-lg transition-all duration-300 select-none outline-none focus:ring-2 focus:ring-accent-mauve/40',
           open
             ? 'text-accent-green border-accent-green/60 shadow-glowGreen'
             : 'text-textSecondary border-borderCustom hover:border-accent-mauve/60 hover:text-accent-mauve shadow-glow animate-pulse-glow'
@@ -214,24 +214,24 @@ export default function FloatingTerminal() {
       >
         <BashIcon
           className={cn(
-            'transition-transform duration-500 text-accent-mauve',
-            open ? 'rotate-180 text-accent-green' : ''
+            'transition-transform duration-500',
+            open ? 'rotate-180 text-accent-green' : 'text-accent-mauve'
           )}
           size={16}
         />
         <span className="font-bold tracking-wider">{open ? 'sys.exit()' : 'kali_shell'}</span>
-        <kbd className="rounded border border-borderCustom bg-bgBase px-1.5 py-0.5 text-[9px] text-textMuted hidden sm:inline ml-1 font-mono">
+        <kbd className="hidden sm:inline-flex items-center rounded border border-borderCustom bg-bgBase px-1.5 py-0.5 text-[9px] text-textMuted ml-1 font-mono">
           ~
         </kbd>
       </button>
 
       {/* Panel de la Consola Glassmórfica */}
       {open && (
-        <div className="fixed bottom-20 right-4 z-40 w-[min(640px,calc(100vw-2rem))] rounded-lg border border-borderCustom bg-bgSurface/95 backdrop-blur-md shadow-glow select-none">
+        <div className="fixed bottom-20 right-4 z-40 w-[min(640px,calc(100vw-2rem))] overflow-hidden rounded-lg border border-borderCustom bg-bgSurface/95 backdrop-blur-md shadow-glow">
           {/* Cabecera Interactiva estilo macOS */}
-          <div className="relative flex items-center border-b border-borderCustom bg-bgBase/95 px-3 py-2.5 rounded-t-lg select-none">
+          <div className="relative flex items-center border-b border-borderCustom bg-bgBase/95 px-3 py-2.5 select-none">
             {/* Botones de Control de Ventana */}
-            <div className="flex items-center gap-1.5 z-10">
+            <div className="relative flex items-center gap-1.5 z-10">
               <button
                 onClick={() => setOpen(false)}
                 className="group relative h-3 w-3 rounded-full bg-accent-red/80 hover:bg-accent-red transition-colors flex items-center justify-center"
@@ -239,18 +239,22 @@ export default function FloatingTerminal() {
               >
                 <span className="absolute text-[8px] font-bold text-bgBase opacity-0 group-hover:opacity-100 transition-opacity">×</span>
               </button>
-              <div className="h-3 w-3 rounded-full bg-accent-yellow/80 cursor-not-allowed" />
-              <div className="h-3 w-3 rounded-full bg-accent-green/80 cursor-not-allowed" />
+              <span className="h-3 w-3 rounded-full bg-accent-yellow/80" aria-hidden />
+              <span className="h-3 w-3 rounded-full bg-accent-green/80" aria-hidden />
             </div>
 
             {/* Título de Consola Centrado Absolutamente */}
-            <div className="absolute inset-x-0 mx-auto flex justify-center pointer-events-none">
-              <span className="text-[11px] font-mono text-textMuted tracking-wider font-semibold">pwnvader@kali:~</span>
+            <div className="pointer-events-none absolute inset-x-0 flex justify-center">
+              <span className="text-[11px] font-mono text-textMuted tracking-wider font-semibold">
+                pwnvader@kali:~
+              </span>
             </div>
 
             {/* Indicador de Canal TTY y Atajos */}
-            <div className="ml-auto text-[9px] font-mono text-textMuted/80 flex items-center gap-2 select-none z-10">
-              <span className="px-1.5 py-0.5 rounded bg-bgElevated border border-borderCustom/60 font-bold">tty0</span>
+            <div className="relative ml-auto flex items-center gap-2 text-[9px] font-mono text-textMuted/80 z-10">
+              <span className="px-1.5 py-0.5 rounded bg-bgElevated border border-borderCustom/60 font-bold">
+                tty0
+              </span>
               <span className="hidden sm:inline">esc para salir</span>
             </div>
           </div>
@@ -258,28 +262,31 @@ export default function FloatingTerminal() {
           {/* Historial de Outputs de Consola */}
           <div
             ref={scrollerRef}
-            className="h-72 overflow-y-auto px-4 py-3.5 font-mono text-xs scrollbar-thin select-text"
+            className="h-72 overflow-y-auto px-4 py-3.5 font-mono text-xs select-text"
           >
             {lines.map((l, i) => (
               <div key={i} className="mb-2.5 leading-relaxed">
                 {l.prompt && (
-                  <div className="text-textSecondary flex flex-wrap items-center gap-1 mb-1.5 select-none">
-                    <span className="text-prompt-user font-semibold">pwnvader</span>
+                  <div className="flex flex-wrap items-center gap-1 mb-1.5 select-none">
+                    <span className="text-accent-green font-semibold">pwnvader</span>
                     <span className="text-textMuted">@</span>
-                    <span className="text-prompt-user font-semibold">kali</span>
+                    <span className="text-accent-green font-semibold">kali</span>
                     <span className="text-textMuted">:</span>
                     <span className="text-accent-mauve font-semibold">~</span>
                     <span className="text-accent-red">$</span>
-                    <span className="text-textPrimary ml-1 break-all select-text font-bold">{l.prompt}</span>
+                    <span className="text-textPrimary ml-1 break-all select-text font-semibold">
+                      {l.prompt}
+                    </span>
                   </div>
                 )}
                 {l.output && (
                   <pre
                     className={cn(
-                      'whitespace-pre-wrap break-words text-[11px] leading-relaxed font-mono pl-2.5 border-l-2 border-borderCustom/30 mb-1',
-                      l.variant === 'error' && 'text-accent-red',
-                      l.variant === 'success' && 'text-accent-green',
-                      (!l.variant || l.variant === 'normal') && 'text-textSecondary/90'
+                      'whitespace-pre-wrap break-words text-[11px] leading-relaxed font-mono pl-2.5 border-l-2 mb-1',
+                      l.variant === 'error' && 'text-accent-red border-accent-red/30',
+                      l.variant === 'success' && 'text-accent-green border-accent-green/30',
+                      (!l.variant || l.variant === 'normal') &&
+                        'text-textSecondary/90 border-borderCustom/30'
                     )}
                   >
                     {l.output}
@@ -292,11 +299,15 @@ export default function FloatingTerminal() {
           {/* Formulario de Prompt de Entrada */}
           <form
             onSubmit={onSubmit}
-            className="flex items-center gap-1.5 border-t border-borderCustom bg-bgBase/65 px-3.5 py-2.5 rounded-b-lg"
+            className="flex items-center gap-1.5 border-t border-borderCustom bg-bgBase/65 px-3.5 py-2.5"
           >
-            <span className="text-prompt-user font-mono text-xs font-semibold select-none">pwnvader</span>
+            <span className="text-accent-green font-mono text-xs font-semibold select-none">
+              pwnvader
+            </span>
             <span className="text-textMuted font-mono text-xs select-none">@</span>
-            <span className="text-prompt-user font-mono text-xs font-semibold select-none">kali</span>
+            <span className="text-accent-green font-mono text-xs font-semibold select-none">
+              kali
+            </span>
             <span className="text-textMuted font-mono text-xs select-none">:</span>
             <span className="text-accent-mauve font-mono text-xs font-semibold select-none">~</span>
             <span className="text-accent-red font-mono text-xs select-none">$</span>

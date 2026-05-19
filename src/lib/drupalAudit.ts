@@ -11,7 +11,7 @@ export interface Finding {
   id: string;
   title: string;
   severity: Severity;
-  category: 'headers' | 'endpoints' | 'version' | 'meta';
+  category: 'headers' | 'endpoints' | 'enum' | 'version' | 'meta';
   detail: string;
   recommendation: string;
   evidence?: string;
@@ -114,6 +114,13 @@ const SEC_HEADERS: Array<{
     severity: 'low',
     recommendation: 'Agrega `Referrer-Policy: strict-origin-when-cross-origin` para controlar la cantidad de información que se envía al referenciar otros sitios.',
   },
+  {
+    key: 'permissions-policy',
+    title: 'Sin Permissions-Policy',
+    severity: 'info',
+    recommendation:
+      'Configura `Permissions-Policy: geolocation=(), microphone=(), camera=()` y deshabilita features del navegador que no uses.',
+  },
 ];
 
 const ENDPOINTS_TO_CHECK: Array<{
@@ -179,6 +186,119 @@ const ENDPOINTS_TO_CHECK: Array<{
     successStatuses: [200],
     recommendation: 'Restringe el listado y lectura directa de archivos PHP del sistema en la carpeta /core/lib/.',
     detailOnHit: 'El archivo central de librería core/lib/Drupal.php se encuentra accesible.',
+  },
+  {
+    path: '/.env',
+    title: '.env expuesto',
+    severity: 'critical',
+    successStatuses: [200],
+    recommendation:
+      'Mueve .env fuera del docroot o bloquéalo en nginx/apache. Rota TODAS las credenciales (DB, API keys, hash salt) inmediatamente.',
+    detailOnHit:
+      'Archivo .env accesible — Drupal moderno usa .env para credenciales DB y hash salt, lo cual implica takeover total.',
+  },
+  {
+    path: '/.git/HEAD',
+    title: 'Directorio .git/ expuesto',
+    severity: 'high',
+    successStatuses: [200],
+    recommendation:
+      'Bloquea /.git/ desde el servidor web. Con `git-dumper` un atacante reconstruye el código fuente completo y todos los commits — incluyendo secretos olvidados.',
+    detailOnHit:
+      '/.git/HEAD legible — el repositorio completo del sitio es probablemente descargable.',
+  },
+  {
+    path: '/composer.json',
+    title: 'composer.json expuesto',
+    severity: 'medium',
+    successStatuses: [200],
+    recommendation:
+      'Bloquea composer.json en producción. Expone la lista completa de módulos y versiones — facilita identificar exploits específicos.',
+    detailOnHit: 'composer.json accesible — revela todos los módulos contrib y sus versiones.',
+  },
+  {
+    path: '/composer.lock',
+    title: 'composer.lock expuesto',
+    severity: 'medium',
+    successStatuses: [200],
+    recommendation:
+      'Bloquea composer.lock en producción. Revela versiones exactas de todas las dependencias (incluyendo dev deps con CVEs conocidos).',
+    detailOnHit: 'composer.lock accesible — fingerprint exacto del stack de dependencias.',
+  },
+  {
+    path: '/UPGRADE.txt',
+    title: 'UPGRADE.txt expuesto',
+    severity: 'low',
+    successStatuses: [200],
+    recommendation: 'Elimina UPGRADE.txt en producción — orienta al atacante sobre la rama de Drupal usada.',
+    detailOnHit: 'Documentación UPGRADE.txt accesible.',
+  },
+  {
+    path: '/INSTALL.txt',
+    title: 'INSTALL.txt expuesto',
+    severity: 'low',
+    successStatuses: [200],
+    recommendation: 'Elimina INSTALL.txt en producción.',
+    detailOnHit: 'INSTALL.txt expuesto — confirma instalación Drupal y orienta sobre la versión mayor.',
+  },
+  {
+    path: '/install.php',
+    title: 'install.php (Drupal 7) activo',
+    severity: 'critical',
+    successStatuses: [200],
+    recommendation:
+      'Bloquea o elimina /install.php fuera de instalaciones nuevas. En Drupal 7 el instalador permite reconfigurar la DB → RCE.',
+    detailOnHit:
+      '/install.php responde — en Drupal 7 esto es vector clásico de takeover (reinstalar el CMS sobre el existente).',
+  },
+  {
+    path: '/cron.php',
+    title: 'cron.php accesible sin token',
+    severity: 'medium',
+    successStatuses: [200],
+    recommendation:
+      'Configura `cron_safe_threshold` y exige el token de cron (`?cron_key=`) en el servidor web. /cron.php abierto es vector de DoS y filtra trazas de error.',
+    detailOnHit:
+      '/cron.php responde 200 sin requerir clave de cron — DoS sencillo y posible leak de información en errores.',
+  },
+  {
+    path: '/sites/default/files/',
+    title: 'Directorio /sites/default/files/ con listing',
+    severity: 'low',
+    successStatuses: [200],
+    recommendation:
+      'Desactiva directory listing (`Options -Indexes` en Apache, `autoindex off` en nginx). El directorio public files no debería listar contenido.',
+    detailOnHit:
+      'Directorio /sites/default/files/ permite listado — expone uploads, posibles backups y archivos privados accidentalmente públicos.',
+  },
+  {
+    path: '/sites/default/private/',
+    title: 'Directorio privado expuesto',
+    severity: 'high',
+    successStatuses: [200],
+    recommendation:
+      'El directorio "private files" debe estar FUERA del docroot o bloqueado por completo en el servidor web. Bloquea /sites/default/private/* inmediatamente.',
+    detailOnHit:
+      'Directorio configurado como "privado" en Drupal accesible por HTTP — contradicción de seguridad.',
+  },
+  {
+    path: '/error_log',
+    title: 'error_log de PHP expuesto',
+    severity: 'high',
+    successStatuses: [200],
+    recommendation:
+      'Borra /error_log y deshabilita `log_errors` en producción, o redirige los logs fuera del docroot.',
+    detailOnHit:
+      'error_log accesible — contiene stack traces, paths internos y queries fallidas con datos sensibles.',
+  },
+  {
+    path: '/web.config',
+    title: 'web.config (IIS) expuesto',
+    severity: 'medium',
+    successStatuses: [200],
+    recommendation:
+      'En IIS, web.config no debería ser legible vía HTTP. Verifica las reglas de MIME-type y handler para denegar lectura de .config.',
+    detailOnHit: 'web.config accesible — expone configuración del servidor y posibles rewrites internos.',
   },
 ];
 
@@ -322,7 +442,105 @@ export async function auditDrupal(
     }
   }
 
-  // 3. Score
+  // Versión vía composer.json (revela también módulos contrib)
+  const composer = endpointResults.find((r) => r.def.path === '/composer.json');
+  if (composer && composer.def.successStatuses.includes(composer.res.status)) {
+    try {
+      const json = JSON.parse(composer.res.body);
+      const coreVer = json?.require?.['drupal/core'] ?? json?.require?.['drupal/core-recommended'];
+      if (coreVer && !drupalVersion) {
+        const m = String(coreVer).match(/[0-9]+\.[0-9]+(\.[0-9]+)?/);
+        if (m) {
+          drupalVersion = m[0];
+          findings.push({
+            id: 'version:composer',
+            title: `Versión de Drupal filtrada en composer.json: ${drupalVersion}`,
+            severity: 'high',
+            category: 'version',
+            detail: `composer.json expone la versión exacta de drupal/core (${coreVer}). Junto con el listado de módulos contrib, da fingerprint completo del stack.`,
+            recommendation:
+              'Bloquea composer.json/composer.lock desde el servidor web (deny en nginx/apache).',
+            evidence: `drupal/core: ${coreVer}`,
+          });
+        }
+      }
+    } catch {
+      /* not json */
+    }
+  }
+
+  // 3. Enumeración: JSON:API + perfil de usuario
+  onProgress?.('enum users (JSON:API + /user/1)');
+  const [jsonapiUsers, userOne] = await Promise.all([
+    proxyGet(workerUrl, joinUrl(base, '/jsonapi/user/user')),
+    proxyGet(workerUrl, joinUrl(base, '/user/1')),
+  ]);
+
+  // 3a) JSON:API expuesta (Drupal 8+)
+  if (!jsonapiUsers.error) {
+    if (jsonapiUsers.status === 200) {
+      try {
+        const json = JSON.parse(jsonapiUsers.body);
+        const list = (json?.data ?? []) as Array<{
+          attributes?: { name?: string; display_name?: string };
+        }>;
+        if (Array.isArray(list) && list.length > 0) {
+          const names = list
+            .map((u) => u?.attributes?.name ?? u?.attributes?.display_name)
+            .filter(Boolean)
+            .slice(0, 20);
+          findings.push({
+            id: 'enum:jsonapi-users',
+            title: `Enumeración de usuarios vía JSON:API (${list.length} encontrados)`,
+            severity: 'high',
+            category: 'enum',
+            detail:
+              'El endpoint /jsonapi/user/user expone la lista de usuarios sin autenticación. Drupal 8+ trae JSON:API en core y suele estar activo por defecto.',
+            recommendation:
+              'Restringe el acceso a /jsonapi/user/user vía permisos de rol "anonymous": desmarca "View user information" o instala el módulo `jsonapi_extras` para filtrar campos sensibles.',
+            evidence: names.length ? names.join(', ') : `${list.length} entradas en data[]`,
+          });
+        }
+      } catch {
+        /* not json */
+      }
+    } else if (jsonapiUsers.status === 401 || jsonapiUsers.status === 403) {
+      findings.push({
+        id: 'enum:jsonapi-enabled',
+        title: 'JSON:API habilitada',
+        severity: 'info',
+        category: 'enum',
+        detail:
+          'El endpoint /jsonapi/user/user responde 401/403, indicando que el módulo JSON:API está habilitado. Es vector adicional de ataque si se filtran permisos.',
+        recommendation:
+          'Si no usas JSON:API públicamente, desactiva el módulo en Admin → Extend o restringe acceso por rol.',
+        evidence: `/jsonapi/user/user → HTTP ${jsonapiUsers.status}`,
+      });
+    }
+  }
+
+  // 3b) Perfil /user/1 — el usuario 1 es siempre el super-admin en Drupal.
+  // Si responde 200 con el nombre visible, es enum directa del super-admin.
+  if (!userOne.error && userOne.status === 200) {
+    // Drupal incluye el nombre del usuario en <title> o en h1.page-title
+    const titleMatch = userOne.body.match(/<title>([^<|]+)/i);
+    const h1Match = userOne.body.match(/<h1[^>]*>\s*([^<\s]+)\s*<\/h1>/i);
+    const username =
+      (titleMatch && titleMatch[1].trim()) || (h1Match && h1Match[1].trim()) || null;
+    findings.push({
+      id: 'enum:user1',
+      title: `Perfil /user/1 (super-admin) accesible${username ? `: ${username}` : ''}`,
+      severity: 'high',
+      category: 'enum',
+      detail:
+        'En Drupal el usuario con UID 1 es siempre el super-administrador. Que su perfil sea legible sin auth revela el username exacto del root del CMS — facilita bruteforce dirigido.',
+      recommendation:
+        'Restringe la vista de perfiles a usuarios autenticados: Admin → People → Permissions → "View user profiles" sólo para roles confiables. Considera renombrar el usuario admin a algo no obvio.',
+      evidence: username ? `username: ${username}` : '/user/1 → HTTP 200',
+    });
+  }
+
+  // 4. Score
   let score = 100;
   for (const f of findings) score -= SEVERITY_PENALTY[f.severity];
   score = Math.max(0, Math.min(100, score));
