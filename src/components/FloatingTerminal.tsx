@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '../lib/cn';
+import { BashIcon } from './CustomIcons';
 
 interface Line {
   prompt: string;
@@ -56,6 +57,7 @@ export default function FloatingTerminal() {
   const [lines, setLines] = useState<Line[]>([{ prompt: '', output: BANNER }]);
   const [history, setHistory] = useState<string[]>([]);
   const [hIndex, setHIndex] = useState(-1);
+  const [showTip, setShowTip] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const nav = useNavigate();
@@ -68,9 +70,11 @@ export default function FloatingTerminal() {
       if (e.key === '`' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         setOpen((o) => !o);
+        setShowTip(false);
       } else if (!isTyping && e.key === '~') {
         e.preventDefault();
         setOpen((o) => !o);
+        setShowTip(false);
       } else if (open && e.key === 'Escape') {
         setOpen(false);
       }
@@ -173,52 +177,109 @@ export default function FloatingTerminal() {
 
   return (
     <>
+      {/* Micro-Tooltip de Activación */}
+      {showTip && !open && (
+        <div
+          onClick={() => {
+            setOpen(true);
+            setShowTip(false);
+          }}
+          onMouseEnter={() => setShowTip(false)}
+          className="fixed bottom-20 right-4 z-40 flex items-center gap-2 rounded border border-borderCustom bg-bgSurface/95 backdrop-blur-md px-3 py-1.5 font-mono text-[10px] text-textSecondary shadow-glow select-none cursor-pointer animate-bounce transition-all duration-300 hover:border-accent-mauve/50"
+        >
+          {/* LED Verde Parpadeante */}
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-green opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-accent-green"></span>
+          </span>
+          <span>consola_activa</span>
+          <kbd className="rounded border border-borderCustom bg-bgBase px-1 text-[8px] text-textMuted">~</kbd>
+        </div>
+      )}
+
+      {/* Botón Disparador Táctico */}
       <button
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => {
+          setOpen((o) => !o);
+          setShowTip(false);
+        }}
+        onMouseEnter={() => setShowTip(false)}
         className={cn(
-          'fixed bottom-4 right-4 z-40 flex items-center gap-2 rounded-full border border-bg-line bg-bg-card px-4 py-2 font-mono text-xs shadow-lg transition',
-          'hover:border-accent-green/60 hover:text-accent-green',
-          open ? 'text-accent-green border-accent-green/60' : 'text-fg-muted'
+          'fixed bottom-4 right-4 z-40 flex items-center gap-2.5 rounded-full border bg-bgSurface/95 backdrop-blur-md px-4.5 py-2.5 font-mono text-xs shadow-lg transition-all duration-300 select-none outline-none',
+          open
+            ? 'text-accent-green border-accent-green/60 shadow-glowGreen'
+            : 'text-textSecondary border-borderCustom hover:border-accent-mauve/60 hover:text-accent-mauve shadow-glow animate-pulse-glow'
         )}
         aria-label="terminal flotante"
       >
-        <span className="text-accent-red">$</span>
-        <span>{open ? 'close' : 'shell'}</span>
-        <kbd className="rounded border border-bg-line bg-bg-soft px-1.5 py-0.5 text-[10px] hidden sm:inline">
+        <BashIcon
+          className={cn(
+            'transition-transform duration-500 text-accent-mauve',
+            open ? 'rotate-180 text-accent-green' : ''
+          )}
+          size={16}
+        />
+        <span className="font-bold tracking-wider">{open ? 'sys.exit()' : 'kali_shell'}</span>
+        <kbd className="rounded border border-borderCustom bg-bgBase px-1.5 py-0.5 text-[9px] text-textMuted hidden sm:inline ml-1 font-mono">
           ~
         </kbd>
       </button>
 
+      {/* Panel de la Consola Glassmórfica */}
       {open && (
-        <div className="fixed bottom-20 right-4 z-40 w-[min(640px,calc(100vw-2rem))] rounded-lg border border-bg-line bg-bg-card shadow-2xl">
-          <div className="flex items-center gap-2 border-b border-bg-line bg-bg-soft px-3 py-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-accent-red/70" />
-            <span className="h-2.5 w-2.5 rounded-full bg-accent-yellow/70" />
-            <span className="h-2.5 w-2.5 rounded-full bg-accent-green/70" />
-            <span className="ml-2 text-xs text-fg-muted">pwnvader@kali ~ shell</span>
-            <span className="ml-auto text-[10px] text-fg-dim">esc para cerrar</span>
+        <div className="fixed bottom-20 right-4 z-40 w-[min(640px,calc(100vw-2rem))] rounded-lg border border-borderCustom bg-bgSurface/95 backdrop-blur-md shadow-glow select-none">
+          {/* Cabecera Interactiva estilo macOS */}
+          <div className="relative flex items-center border-b border-borderCustom bg-bgBase/95 px-3 py-2.5 rounded-t-lg select-none">
+            {/* Botones de Control de Ventana */}
+            <div className="flex items-center gap-1.5 z-10">
+              <button
+                onClick={() => setOpen(false)}
+                className="group relative h-3 w-3 rounded-full bg-accent-red/80 hover:bg-accent-red transition-colors flex items-center justify-center"
+                aria-label="Cerrar terminal"
+              >
+                <span className="absolute text-[8px] font-bold text-bgBase opacity-0 group-hover:opacity-100 transition-opacity">×</span>
+              </button>
+              <div className="h-3 w-3 rounded-full bg-accent-yellow/80 cursor-not-allowed" />
+              <div className="h-3 w-3 rounded-full bg-accent-green/80 cursor-not-allowed" />
+            </div>
+
+            {/* Título de Consola Centrado Absolutamente */}
+            <div className="absolute inset-x-0 mx-auto flex justify-center pointer-events-none">
+              <span className="text-[11px] font-mono text-textMuted tracking-wider font-semibold">pwnvader@kali:~</span>
+            </div>
+
+            {/* Indicador de Canal TTY y Atajos */}
+            <div className="ml-auto text-[9px] font-mono text-textMuted/80 flex items-center gap-2 select-none z-10">
+              <span className="px-1.5 py-0.5 rounded bg-bgElevated border border-borderCustom/60 font-bold">tty0</span>
+              <span className="hidden sm:inline">esc para salir</span>
+            </div>
           </div>
-          <div ref={scrollerRef} className="max-h-72 overflow-y-auto px-3 py-2 text-sm">
+
+          {/* Historial de Outputs de Consola */}
+          <div
+            ref={scrollerRef}
+            className="h-72 overflow-y-auto px-4 py-3.5 font-mono text-xs scrollbar-thin select-text"
+          >
             {lines.map((l, i) => (
-              <div key={i} className="mb-1">
+              <div key={i} className="mb-2.5 leading-relaxed">
                 {l.prompt && (
-                  <div className="text-fg-muted">
-                    <span className="text-prompt-user">pwnvader</span>
-                    <span className="text-fg-dim">@</span>
-                    <span className="text-prompt-user">kali</span>
-                    <span className="text-fg-dim">:</span>
-                    <span className="text-prompt-path">~</span>
-                    <span className="text-accent-red">$</span>{' '}
-                    <span className="text-fg">{l.prompt}</span>
+                  <div className="text-textSecondary flex flex-wrap items-center gap-1 mb-1.5 select-none">
+                    <span className="text-prompt-user font-semibold">pwnvader</span>
+                    <span className="text-textMuted">@</span>
+                    <span className="text-prompt-user font-semibold">kali</span>
+                    <span className="text-textMuted">:</span>
+                    <span className="text-accent-mauve font-semibold">~</span>
+                    <span className="text-accent-red">$</span>
+                    <span className="text-textPrimary ml-1 break-all select-text font-bold">{l.prompt}</span>
                   </div>
                 )}
                 {l.output && (
                   <pre
                     className={cn(
-                      'whitespace-pre-wrap break-words text-xs leading-relaxed',
+                      'whitespace-pre-wrap break-words text-[11px] leading-relaxed font-mono pl-2.5 border-l-2 border-borderCustom/30 mb-1',
                       l.variant === 'error' && 'text-accent-red',
                       l.variant === 'success' && 'text-accent-green',
-                      (!l.variant || l.variant === 'normal') && 'text-fg-muted'
+                      (!l.variant || l.variant === 'normal') && 'text-textSecondary/90'
                     )}
                   >
                     {l.output}
@@ -227,11 +288,18 @@ export default function FloatingTerminal() {
               </div>
             ))}
           </div>
-          <form onSubmit={onSubmit} className="flex items-center gap-2 border-t border-bg-line px-3 py-2">
-            <span className="text-prompt-user font-mono text-sm">pwnvader@kali</span>
-            <span className="text-fg-dim font-mono text-sm">:</span>
-            <span className="text-prompt-path font-mono text-sm">~</span>
-            <span className="text-accent-red font-mono text-sm">$</span>
+
+          {/* Formulario de Prompt de Entrada */}
+          <form
+            onSubmit={onSubmit}
+            className="flex items-center gap-1.5 border-t border-borderCustom bg-bgBase/65 px-3.5 py-2.5 rounded-b-lg"
+          >
+            <span className="text-prompt-user font-mono text-xs font-semibold select-none">pwnvader</span>
+            <span className="text-textMuted font-mono text-xs select-none">@</span>
+            <span className="text-prompt-user font-mono text-xs font-semibold select-none">kali</span>
+            <span className="text-textMuted font-mono text-xs select-none">:</span>
+            <span className="text-accent-mauve font-mono text-xs font-semibold select-none">~</span>
+            <span className="text-accent-red font-mono text-xs select-none">$</span>
             <input
               ref={inputRef}
               value={input}
@@ -239,8 +307,8 @@ export default function FloatingTerminal() {
               onKeyDown={onKeyDown}
               autoComplete="off"
               spellCheck={false}
-              className="flex-1 bg-transparent font-mono text-sm text-fg outline-none placeholder:text-fg-dim"
-              placeholder="help"
+              className="flex-1 bg-transparent font-mono text-xs text-textPrimary outline-none placeholder:text-textMuted/40 pl-1"
+              placeholder="escribe un comando o 'help'..."
             />
           </form>
         </div>
@@ -248,3 +316,4 @@ export default function FloatingTerminal() {
     </>
   );
 }
+
