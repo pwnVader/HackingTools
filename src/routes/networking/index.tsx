@@ -1,3 +1,4 @@
+import { Workflow } from 'lucide-react';
 import { CalculatorIcon, BashIcon } from '../../components/CustomIcons';
 import SectionIndex from '../SectionIndex';
 
@@ -7,7 +8,7 @@ export default function NetworkingIndex() {
       cwd="~/networking"
       command="ls -la"
       title="Networking"
-      intro="Herramientas de red para CTFs y pentesting interno: cálculo rápido de subredes y generador de reverse shells listas para copiar."
+      intro="Herramientas de red para CTFs y pentesting interno: cálculo de subredes, reverse shells listas para copiar y diseño de túneles para pivotaje."
       tools={[
         {
           to: '/networking/subnet',
@@ -22,6 +23,13 @@ export default function NetworkingIndex() {
           title: 'Reverse Shell Generator',
           description: 'Más de 20 plantillas (Bash, Python, PHP, PowerShell, nc…) con encoding URL/Base64/PS-enc, listeners y TTY upgrades.',
           icon: <BashIcon className="h-5 w-5" />,
+        },
+        {
+          to: '/networking/tunneling',
+          command: './pivoting-architect',
+          title: 'Pivoting Architect',
+          description: 'Diseñador 3-columnas (Kali → Pivot → Target) para Chisel, SSH (-D/-L/-R) y Ligolo-ng. Comandos exactos por nodo.',
+          icon: <Workflow className="h-5 w-5" />,
         },
       ]}
     />

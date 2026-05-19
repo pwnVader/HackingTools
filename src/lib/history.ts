@@ -157,6 +157,131 @@ export function useRevshellHistory(): RevshellEntry[] {
   return items;
 }
 
+// ─── global aggregation ──────────────────────────────────────────────
+
+/**
+ * Feed unificado, orden cronológico inverso. Útil para el dashboard
+ * /history que muestra toda la actividad de la sesión en un solo timeline.
+ */
+export function getAllHistory(): HistoryEntry[] {
+  const all: HistoryEntry[] = [...getAuditHistory(), ...getRevshellHistory()];
+  return all.sort((a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime());
+}
+
+export function useAllHistory(): HistoryEntry[] {
+  const [items, setItems] = useState<HistoryEntry[]>(() => getAllHistory());
+  useEffect(() => {
+    const fn = () => setItems(getAllHistory());
+    listeners.audit.add(fn);
+    listeners.revshell.add(fn);
+    return () => {
+      listeners.audit.delete(fn);
+      listeners.revshell.delete(fn);
+    };
+  }, []);
+  return items;
+}
+
+/**
+ * Conteo por bucket para mostrar cuántos eventos hay por categoría
+ * sin tener que rehidratar las listas completas.
+ */
+export interface BucketCount {
+  kind: HistoryKind;
+  label: string;
+  count: number;
+}
+
+export function getBucketCounts(): BucketCount[] {
+  return [
+    { kind: 'audit', label: 'Auditorías CMS', count: getAuditHistory().length },
+    { kind: 'revshell', label: 'Payloads copiados', count: getRevshellHistory().length },
+  ];
+}
+
+/**
+ * Inventario de TODO lo que el toolkit tiene persistido en localStorage:
+ * historial + estados de herramientas (config de RevShell, último target de
+ * wp-audit, etc.). Útil para el dashboard "Global Killswitch" — el usuario
+ * ve antes de borrar.
+ *
+ * Sólo enumera las keys que empiezan por `pwn:` para evitar tocar
+ * localStorage de otras apps que puedan compartir origen (no debería
+ * pasar pero por higiene).
+ */
+export interface StorageItem {
+  key: string;
+  sizeBytes: number;
+  /** Etiqueta human-readable derivada del key. */
+  label: string;
+}
+
+const KEY_LABELS: Record<string, string> = {
+  'pwn:history:audit:v1': 'Historial · auditorías CMS',
+  'pwn:history:revshell:v1': 'Historial · reverse shells',
+  'pwn:wpaudit:v2': 'Estado · wp-audit (último target)',
+  'pwn:joomlaaudit:v1': 'Estado · joomla-audit (último target)',
+  'pwn:drupalaudit:v1': 'Estado · drupal-audit (último target)',
+  'pwn:revshell:v4': 'Estado · revshell-gen (LHOST, LPORT, plantilla)',
+  'pwn:revshell:v3': 'Estado · revshell-gen (legacy v3)',
+  'pwn:revshell:v2': 'Estado · revshell-gen (legacy v2)',
+};
+
+function humanLabel(key: string): string {
+  if (KEY_LABELS[key]) return KEY_LABELS[key];
+  // Heurística: pwn:<tool>:<version>
+  const parts = key.split(':');
+  if (parts.length >= 2) return `${parts[1]} (${key})`;
+  return key;
+}
+
+export function getStorageFootprint(): StorageItem[] {
+  const out: StorageItem[] = [];
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key || !key.startsWith('pwn:')) continue;
+      const value = localStorage.getItem(key) ?? '';
+      // El tamaño en localStorage es aproximadamente el largo del string en UTF-16.
+      out.push({ key, sizeBytes: value.length * 2, label: humanLabel(key) });
+    }
+  } catch {
+    /* private mode / restricted */
+  }
+  return out.sort((a, b) => b.sizeBytes - a.sizeBytes);
+}
+
+export function totalFootprintBytes(): number {
+  return getStorageFootprint().reduce((acc, it) => acc + it.sizeBytes, 0);
+}
+
+/**
+ * KILLSWITCH GLOBAL.
+ *
+ * Borra TODAS las keys del toolkit (las que empiezan por `pwn:`) y notifica
+ * a los suscriptores para que la UI se rehidrate al instante. NO recargamos
+ * la página: el caller decide si tras esto navega o muestra estado vacío.
+ *
+ * Diseño deliberado:
+ *  - No usa `window.confirm` (rompería el flujo en mitad de una auditoría).
+ *  - No usa `localStorage.clear()` global: respeta keys no nuestras por si
+ *    el navegador comparte origen con otra app montada en /something/else.
+ */
+export function clearAllToolkitStorage(): void {
+  try {
+    const toDelete: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('pwn:')) toDelete.push(key);
+    }
+    for (const k of toDelete) localStorage.removeItem(k);
+  } catch {
+    /* no-op si localStorage está bloqueado */
+  }
+  notify('audit');
+  notify('revshell');
+}
+
 // ─── formatter ───────────────────────────────────────────────────────
 
 /**
@@ -174,4 +299,10 @@ export function relativeTime(iso: string): string {
   const diffHr = Math.round(diffMin / 60);
   if (diffHr < 24) return `hace ${diffHr}h`;
   return new Date(iso).toLocaleString();
+}
+
+export function formatBytes(n: number): string {
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+  return `${(n / (1024 * 1024)).toFixed(2)} MB`;
 }

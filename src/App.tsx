@@ -3,9 +3,11 @@ import Layout from './components/Layout';
 import Prompt from './components/Prompt';
 
 import Home from './routes/Home';
+import HistoryRoute from './routes/History';
 import NetworkingIndex from './routes/networking';
 import Subnet from './routes/networking/Subnet';
 import RevShell from './routes/networking/RevShell';
+import Tunneling from './routes/networking/Tunneling';
 import CmsIndex from './routes/cms';
 import Wordpress from './routes/cms/Wordpress';
 import Joomla from './routes/cms/Joomla';
@@ -13,6 +15,10 @@ import Drupal from './routes/cms/Drupal';
 import EncodersIndex from './routes/encoders';
 import Recipes from './routes/encoders/Recipes';
 import EmojiStego from './routes/encoders/EmojiStego';
+import CrackingIndex from './routes/cracking';
+import Hashcat from './routes/cracking/Hashcat';
+import WebIndex from './routes/web';
+import JwtAttacker from './routes/web/Jwt';
 
 export default function App() {
   return (
@@ -24,6 +30,7 @@ export default function App() {
           <Route index element={<NetworkingIndex />} />
           <Route path="subnet" element={<Subnet />} />
           <Route path="revshell" element={<RevShell />} />
+          <Route path="tunneling" element={<Tunneling />} />
         </Route>
 
         <Route path="cms">
@@ -38,6 +45,18 @@ export default function App() {
           <Route path="recipes" element={<Recipes />} />
           <Route path="emoji-stego" element={<EmojiStego />} />
         </Route>
+
+        <Route path="cracking">
+          <Route index element={<CrackingIndex />} />
+          <Route path="hashcat" element={<Hashcat />} />
+        </Route>
+
+        <Route path="web">
+          <Route index element={<WebIndex />} />
+          <Route path="jwt" element={<JwtAttacker />} />
+        </Route>
+
+        <Route path="history" element={<HistoryRoute />} />
 
         <Route path="*" element={<NotFound />} />
       </Route>

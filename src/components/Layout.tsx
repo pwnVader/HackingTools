@@ -1,12 +1,15 @@
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useMemo } from 'react';
+import { History as HistoryIcon } from 'lucide-react';
 import { cn } from '../lib/cn';
 import FloatingTerminal from './FloatingTerminal';
 import { KaliIcon } from './CustomIcons';
 
 const NAV = [
-  { to: '/networking', label: 'networking', desc: 'subnetting · reverse shells' },
-  { to: '/cms', label: 'cms-audit', desc: 'wordpress' },
+  { to: '/networking', label: 'networking', desc: 'subnetting · revshell · pivot' },
+  { to: '/cms', label: 'cms-audit', desc: 'wp · joomla · drupal' },
+  { to: '/web', label: 'web', desc: 'jwt' },
+  { to: '/cracking', label: 'cracking', desc: 'hashcat masks' },
   { to: '/encoders', label: 'encoders', desc: 'b64 · url · stego' },
 ];
 
@@ -71,6 +74,22 @@ function Header({ cwd }: { cwd: string }) {
               {n.label}
             </NavLink>
           ))}
+          <NavLink
+            to="/history"
+            title="Historial global · Killswitch"
+            aria-label="Historial global"
+            className={({ isActive }) =>
+              cn(
+                'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 font-mono border transition duration-200 ml-1',
+                isActive
+                  ? 'border-accent-peach/50 text-accent-peach bg-accent-peach/5'
+                  : 'border-borderCustom text-textMuted hover:text-accent-peach hover:border-accent-peach/40'
+              )
+            }
+          >
+            <HistoryIcon className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline text-xs">history</span>
+          </NavLink>
         </nav>
       </div>
     </header>

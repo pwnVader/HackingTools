@@ -1,4 +1,13 @@
-import { Network, ShieldAlert, Sparkles, ExternalLink, Lock } from 'lucide-react';
+import {
+  Network,
+  ShieldAlert,
+  Sparkles,
+  ExternalLink,
+  Lock,
+  KeyRound,
+  ShieldOff,
+  History as HistoryIcon,
+} from 'lucide-react';
 import Prompt from '../components/Prompt';
 import ToolCard from '../components/ToolCard';
 import Terminal from '../components/Terminal';
@@ -35,15 +44,29 @@ export default function Home() {
             to="/networking"
             command="cd networking/"
             title="Networking"
-            description="Calculadora de subnetting IPv4 (network, broadcast, hosts, máscara, wildcard) y generador de reverse shells multi-lenguaje con encoding URL/Base64."
+            description="Subnet calculator, reverse shells multi-lenguaje y arquitecto de túneles para pivotaje (Chisel · SSH · Ligolo)."
             icon={<Network className="h-5 w-5" />}
           />
           <ToolCard
             to="/cms"
             command="cd cms-audit/"
             title="CMS Audit"
-            description="Auditoría pasiva de WordPress: cabeceras de seguridad, endpoints expuestos, enumeración de usuarios, versión y score de riesgo. Más CMS en camino."
+            description="Auditoría pasiva de WordPress, Joomla y Drupal con refs OWASP/CWE/CVE y reportes HTML/PDF/Markdown profesionales."
             icon={<ShieldAlert className="h-5 w-5" />}
+          />
+          <ToolCard
+            to="/web"
+            command="cd web/"
+            title="Web"
+            description="JWT Attacker: editor visual de tokens con ataques de un clic (alg:none, privilege escalation). Más vectores próximamente."
+            icon={<ShieldOff className="h-5 w-5" />}
+          />
+          <ToolCard
+            to="/cracking"
+            command="cd cracking/"
+            title="Cracking"
+            description="Hashcat Mask Builder: catálogo de hash modes, constructor visual de máscaras (?u?l?d?s + literales) y comando completo."
+            icon={<KeyRound className="h-5 w-5" />}
           />
           <ToolCard
             to="/encoders"
@@ -51,6 +74,13 @@ export default function Home() {
             title="Encoders"
             description="Recetas tipo CyberChef (base64, URL, hex, hash, JWT, rot) y una feature distintiva: ocultar mensajes invisibles dentro de un emoji."
             icon={<Sparkles className="h-5 w-5" />}
+          />
+          <ToolCard
+            to="/history"
+            command="cd history/"
+            title="Historial Global"
+            description="Feed unificado de toda la actividad guardada en localStorage + Killswitch para purgar el estado completo del toolkit en un clic."
+            icon={<HistoryIcon className="h-5 w-5" />}
           />
         </div>
       </section>
