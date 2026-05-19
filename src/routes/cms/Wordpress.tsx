@@ -9,6 +9,11 @@ import {
   AlertTriangle,
   CheckCircle2,
   Info,
+  Copy,
+  Check,
+  ExternalLink,
+  History,
+  Trash2,
 } from 'lucide-react';
 import Prompt from '../../components/Prompt';
 import Terminal from '../../components/Terminal';
@@ -22,7 +27,20 @@ import {
   type Finding,
   type Severity,
 } from '../../lib/wpAudit';
+import {
+  getSecRefs,
+  endpointUrl,
+  cveSearchUrl,
+  isVersionRelated,
+} from '../../lib/wpRefs';
 import { toMarkdown, toHtml, downloadFile, printHtmlReport, sanitizeFilename } from '../../lib/wpExport';
+import {
+  pushAudit,
+  clearAuditHistory,
+  useAuditHistory,
+  relativeTime,
+  type AuditEntry,
+} from '../../lib/history';
 import { WORKER_URL, HAS_WORKER } from '../../lib/config';
 import { cn } from '../../lib/cn';
 
@@ -77,6 +95,12 @@ export default function Wordpress() {
     try {
       const r = await auditWordpress(WORKER_URL, state.target.trim(), (l) => setProgress(l));
       setResult(r);
+      pushAudit({
+        target: r.target,
+        findingCount: r.findings.length,
+        riskLabel: r.riskLabel,
+        score: r.score,
+      });
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error desconocido');
     } finally {
@@ -168,6 +192,8 @@ export default function Wordpress() {
       )}
 
       {result && <ResultView result={result} />}
+
+      <AuditHistoryPanel onRecall={(target) => setState((s) => ({ ...s, target }))} />
     </div>
   );
 }
@@ -200,33 +226,51 @@ function ResultView({ result }: { result: AuditResult }) {
             />
             <Kv k="Duración" v={`${result.durationMs} ms`} />
             {result.metadata.wpVersion && <Kv k="Versión WP" v={result.metadata.wpVersion} mono />}
-            {result.metadata.wafDetected && <Kv k="WAF" v={result.metadata.wafDetected} />}
-            {result.metadata.server && <Kv k="Server" v={result.metadata.server} mono />}
+            {result.metadata.poweredBy && <Kv k="X-Powered-By" v={result.metadata.poweredBy} mono />}
           </div>
         </div>
 
         <div className="mt-6 pt-5 border-t border-bg-line">
           <div className="text-[11px] uppercase tracking-wider text-fg-muted mb-3">Exportar reporte</div>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={() => downloadFile(md, `${fname}.md`, 'text/markdown;charset=utf-8')}>
-              <FileText className="h-3.5 w-3.5" />
-              Markdown
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => downloadFile(html, `${fname}.html`, 'text/html;charset=utf-8')}>
-              <FileCode2 className="h-3.5 w-3.5" />
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => downloadFile(html, `${fname}.html`, 'text/html;charset=utf-8')}
+              className={EXPORT_PRIMARY}
+            >
+              <FileCode2 className="h-4 w-4" />
               HTML
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => printHtmlReport(html)}>
-              <Printer className="h-3.5 w-3.5" />
-              PDF (imprimir)
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => downloadFile(jsonStr, `${fname}.json`, 'application/json;charset=utf-8')}>
-              <FileJson className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => printHtmlReport(html)}
+              className={EXPORT_PRIMARY}
+            >
+              <Printer className="h-4 w-4" />
+              PDF
+            </button>
+
+            <span className="hidden sm:block h-7 w-px bg-bg-line mx-1" aria-hidden />
+
+            <button
+              type="button"
+              onClick={() => downloadFile(md, `${fname}.md`, 'text/markdown;charset=utf-8')}
+              className={EXPORT_SECONDARY}
+            >
+              <FileText className="h-4 w-4" />
+              Markdown
+            </button>
+            <button
+              type="button"
+              onClick={() => downloadFile(jsonStr, `${fname}.json`, 'application/json;charset=utf-8')}
+              className={EXPORT_SECONDARY}
+            >
+              <FileJson className="h-4 w-4" />
               JSON
-            </Button>
+            </button>
             <CopyButton value={jsonStr} label="copiar JSON" />
           </div>
-          <p className="mt-2 text-[11px] text-fg-dim">
+          <p className="mt-3 text-[11px] text-fg-dim">
             <span className="text-accent-yellow">tip:</span> el botón PDF abre la versión HTML en una ventana nueva y dispara el diálogo de imprimir. Elige "Guardar como PDF".
           </p>
         </div>
@@ -243,7 +287,12 @@ function ResultView({ result }: { result: AuditResult }) {
             </h2>
             <div className="grid gap-2.5">
               {list.map((f) => (
-                <FindingCard key={f.id} f={f} />
+                <FindingCard
+                  key={f.id}
+                  f={f}
+                  target={result.target}
+                  wpVersion={result.metadata.wpVersion}
+                />
               ))}
             </div>
           </section>
@@ -287,11 +336,24 @@ function SeverityDot({ severity }: { severity: Severity }) {
   return <span className={cn('inline-block h-2 w-2 rounded-full', SEV_DOT[severity])} />;
 }
 
-function FindingCard({ f }: { f: Finding }) {
+function FindingCard({
+  f,
+  target,
+  wpVersion,
+}: {
+  f: Finding;
+  target: string;
+  wpVersion: string | null;
+}) {
   const sev = SEV_STYLE[f.severity];
+  const refs = getSecRefs(f);
+  const epUrl = endpointUrl(f, target);
+  const showCveLink = !!wpVersion && isVersionRelated(f);
+  const showRefsRow = !!refs || showCveLink;
+
   return (
     <details className={cn('rounded-lg border bg-bg-card overflow-hidden transition', sev.border)}>
-      <summary className="cursor-pointer list-none px-4 py-3 flex items-center justify-between gap-3 hover:bg-bg-soft/50">
+      <summary className="cursor-pointer list-none px-4 py-3 hover:bg-bg-soft/50">
         <div className="flex items-center gap-3 min-w-0">
           <span
             className={cn(
@@ -302,12 +364,53 @@ function FindingCard({ f }: { f: Finding }) {
           >
             {sev.label}
           </span>
-          <span className="text-sm text-fg truncate">{f.title}</span>
+          <span className="text-sm text-fg truncate flex-1">{f.title}</span>
+          {epUrl && <QuickActions url={epUrl} />}
+          <span className="text-xs text-fg-dim flex-shrink-0 hidden sm:inline">[{f.category}]</span>
         </div>
-        <span className="text-xs text-fg-dim flex-shrink-0">[{f.category}]</span>
+        {showRefsRow && (
+          <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+            {refs?.cwe && (
+              <RefBadge
+                href={refs.cwe.url}
+                label={`CWE-${refs.cwe.id}`}
+                title={`CWE-${refs.cwe.id}: ${refs.cwe.title}`}
+              />
+            )}
+            {refs?.owasp && (
+              <RefBadge
+                href={refs.owasp.url}
+                label={refs.owasp.id}
+                title={`OWASP Top 10 — ${refs.owasp.title}`}
+              />
+            )}
+            {showCveLink && wpVersion && (
+              <RefBadge
+                href={cveSearchUrl(wpVersion)}
+                label={`Buscar CVEs · WP ${wpVersion}`}
+                title={`Búsqueda en NVD para WordPress ${wpVersion}`}
+                accent
+              />
+            )}
+          </div>
+        )}
       </summary>
       <div className="border-t border-bg-line px-4 py-4 space-y-3 text-sm">
         <p className="text-fg-muted leading-relaxed">{f.detail}</p>
+        {epUrl && (
+          <div>
+            <span className="text-[10px] uppercase tracking-wider text-fg-dim">endpoint</span>
+            <a
+              href={epUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-1 inline-flex max-w-full items-center gap-2 rounded border border-bg-line bg-bg-soft px-2.5 py-1.5 font-mono text-xs text-accent-yellow hover:border-accent-yellow/50 hover:bg-accent-yellow/5 transition break-all"
+            >
+              <span className="truncate">{epUrl}</span>
+              <ExternalLink className="h-3 w-3 opacity-70 flex-shrink-0" />
+            </a>
+          </div>
+        )}
         {f.evidence && (
           <div>
             <span className="text-[10px] uppercase tracking-wider text-fg-dim">evidencia</span>
@@ -324,6 +427,95 @@ function FindingCard({ f }: { f: Finding }) {
     </details>
   );
 }
+
+function RefBadge({
+  href,
+  label,
+  title,
+  accent,
+}: {
+  href: string;
+  label: string;
+  title: string;
+  accent?: boolean;
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={(e) => e.stopPropagation()}
+      title={title}
+      className={cn(
+        'inline-flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-mono font-medium uppercase tracking-wider transition',
+        accent
+          ? 'border-accent-yellow/40 bg-accent-yellow/5 text-accent-yellow hover:bg-accent-yellow/10 hover:border-accent-yellow/60'
+          : 'border-bg-line bg-bg-soft text-fg-muted hover:text-fg hover:border-fg-muted/60'
+      )}
+    >
+      {label}
+      <ExternalLink className="h-2.5 w-2.5 opacity-70" />
+    </a>
+  );
+}
+
+function QuickActions({ url }: { url: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!navigator.clipboard) return;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1200);
+    });
+  };
+
+  return (
+    <div
+      className="flex items-center gap-0.5 flex-shrink-0"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <button
+        type="button"
+        onClick={handleCopy}
+        className="rounded p-1.5 text-fg-dim hover:text-accent-green hover:bg-bg-soft transition focus:outline-none focus:ring-1 focus:ring-accent-green/40"
+        title={copied ? '¡Copiado!' : 'Copiar URL del endpoint'}
+        aria-label="Copiar URL del endpoint"
+      >
+        {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+      </button>
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={(e) => e.stopPropagation()}
+        className="rounded p-1.5 text-fg-dim hover:text-accent-blue hover:bg-bg-soft transition focus:outline-none focus:ring-1 focus:ring-accent-blue/40"
+        title="Abrir endpoint en pestaña nueva"
+        aria-label="Abrir endpoint en pestaña nueva"
+      >
+        <ExternalLink className="h-3.5 w-3.5" />
+      </a>
+    </div>
+  );
+}
+
+const EXPORT_PRIMARY = cn(
+  'inline-flex items-center justify-center gap-2 rounded-md font-mono text-sm font-medium',
+  'px-4 py-2.5 min-w-[110px]',
+  'bg-[#222a35] text-fg border border-[#2d3744]',
+  'hover:bg-[#2a3441] hover:border-[#3a4554]',
+  'transition focus:outline-none focus:ring-2 focus:ring-accent-blue/30'
+);
+
+const EXPORT_SECONDARY = cn(
+  'inline-flex items-center justify-center gap-2 rounded-md font-mono text-sm font-medium',
+  'px-4 py-2.5 min-w-[110px]',
+  'bg-transparent text-fg-muted border border-bg-line',
+  'hover:text-fg hover:border-fg-muted/60',
+  'transition focus:outline-none focus:ring-2 focus:ring-accent-blue/30'
+);
 
 function Kv({ k, v, mono }: { k: string; v: string; mono?: boolean }) {
   return (
@@ -362,5 +554,97 @@ function ScoreRing({ score, label }: { score: number; label: string }) {
         <span className="text-[10px] uppercase tracking-wider text-fg-muted mt-1">{label}</span>
       </div>
     </div>
+  );
+}
+
+// ───────────────────────── history panel ─────────────────────────
+
+const RISK_COLOR: Record<string, string> = {
+  Bajo: 'text-accent-green',
+  Medio: 'text-accent-yellow',
+  Alto: 'text-accent-purple',
+  Crítico: 'text-accent-red',
+};
+
+function AuditHistoryPanel({ onRecall }: { onRecall: (target: string) => void }) {
+  const items = useAuditHistory();
+
+  return (
+    <section className="rounded-xl border border-bg-line bg-bg-card overflow-hidden">
+      <details open={items.length > 0}>
+        <summary className="cursor-pointer list-none flex items-center justify-between gap-3 px-5 py-3 hover:bg-bg-soft/40 transition">
+          <div className="flex items-center gap-2 min-w-0">
+            <History className="h-4 w-4 text-fg-muted" />
+            <span className="text-sm font-medium text-fg">Actividad reciente</span>
+            <span className="rounded border border-bg-line bg-bg-soft px-1.5 py-0.5 font-mono text-[10px] text-fg-dim">
+              {items.length}
+            </span>
+          </div>
+          {items.length > 0 && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                clearAuditHistory();
+              }}
+              className="inline-flex items-center gap-1.5 rounded border border-bg-line px-2.5 py-1 text-[11px] font-mono text-fg-muted transition hover:text-accent-red hover:border-accent-red/50"
+              aria-label="borrar historial de auditorías"
+            >
+              <Trash2 className="h-3 w-3" />
+              <span>Borrar</span>
+            </button>
+          )}
+        </summary>
+        <div className="border-t border-bg-line">
+          {items.length === 0 ? (
+            <p className="px-5 py-6 text-center text-xs text-fg-dim">
+              Sin auditorías registradas todavía. Cada escaneo exitoso queda guardado aquí
+              (solo en este navegador).
+            </p>
+          ) : (
+            <ul className="divide-y divide-bg-line/40">
+              {items.map((it) => (
+                <AuditHistoryRow key={it.id} entry={it} onRecall={onRecall} />
+              ))}
+            </ul>
+          )}
+        </div>
+      </details>
+    </section>
+  );
+}
+
+function AuditHistoryRow({
+  entry,
+  onRecall,
+}: {
+  entry: AuditEntry;
+  onRecall: (target: string) => void;
+}) {
+  const riskClass = RISK_COLOR[entry.riskLabel] ?? 'text-fg-muted';
+  return (
+    <li>
+      <button
+        type="button"
+        onClick={() => onRecall(entry.target)}
+        className="w-full grid grid-cols-[1fr_auto] items-center gap-3 px-5 py-2.5 text-left hover:bg-bg-soft/40 transition"
+        title="usar este target como input"
+      >
+        <div className="min-w-0">
+          <div className="text-sm text-fg font-mono truncate">{entry.target}</div>
+          <div className="text-[11px] text-fg-dim mt-0.5 flex items-center gap-2 flex-wrap">
+            <span>{entry.findingCount} hallazgo{entry.findingCount === 1 ? '' : 's'}</span>
+            <span className="text-fg-dim/60">·</span>
+            <span className={cn('font-medium', riskClass)}>
+              {entry.riskLabel} · {entry.score}/100
+            </span>
+            <span className="text-fg-dim/60">·</span>
+            <span title={new Date(entry.ts).toLocaleString()}>{relativeTime(entry.ts)}</span>
+          </div>
+        </div>
+        <ExternalLink className="h-3.5 w-3.5 text-fg-dim flex-shrink-0" />
+      </button>
+    </li>
   );
 }

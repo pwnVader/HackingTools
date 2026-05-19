@@ -3,28 +3,15 @@ import Prompt from '../components/Prompt';
 import ToolCard from '../components/ToolCard';
 import Terminal from '../components/Terminal';
 
-const BANNER = String.raw`
- _                _    _                  _              _ _    _ _
-| |              | |  (_)                | |            | | |  (_) |
-| |__   __ _  ___| | ___ _ __   __ _   __| |_   _____   | | | _ _| |_
-| '_ \ / _\` |/ __| |/ / | '_ \ / _\` | / _\` \ \ / / __|  | | |/ / | __|
-| | | | (_| | (__|   <| | | | | (_| || (_| |\ V /\__ \  |_|   <| | |_
-|_| |_|\__,_|\___|_|\_\_|_| |_|\__, | \__,_| \_/ |___/  (_)_|\_\_|\__|
-                                __/ |
-                               |___/`;
-
 export default function Home() {
   return (
     <div className="space-y-16">
       {/* Hero */}
-      <section className="space-y-6">
-        <Prompt cwd="~" command="cat /etc/hacking/banner" />
-        <pre className="text-accent-green text-[9px] sm:text-[10px] md:text-xs leading-tight overflow-x-auto">
-{BANNER}
-        </pre>
+      <section className="space-y-5">
+        <Prompt cwd="~" command="./toolkit --info" />
         <div className="max-w-2xl space-y-3">
           <h1 className="text-3xl sm:text-4xl font-bold text-fg leading-tight">
-            Toolkit serverless de <span className="text-accent-green">ciberseguridad</span>.
+            Toolkit serverless de <span className="text-accent-yellow">ciberseguridad</span>.
           </h1>
           <p className="text-base text-fg-muted leading-relaxed">
             Todo corre en tu navegador — sin telemetría, sin backend, sin cuentas.

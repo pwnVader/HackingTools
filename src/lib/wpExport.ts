@@ -4,6 +4,7 @@
  */
 
 import type { AuditResult, Severity } from './wpAudit';
+import { endpointUrl as findingUrl } from './wpRefs';
 
 const SEV_LABEL: Record<Severity, string> = {
   critical: 'CRÍTICA',
@@ -44,9 +45,7 @@ export function toMarkdown(r: AuditResult): string {
   lines.push(`| Score | **${r.score} / 100 — ${r.riskLabel}** |`);
   lines.push(`| Hallazgos | ${r.findings.length} |`);
   if (r.metadata.wpVersion) lines.push(`| Versión WP | \`${r.metadata.wpVersion}\` |`);
-  if (r.metadata.server) lines.push(`| Server | \`${r.metadata.server}\` |`);
   if (r.metadata.poweredBy) lines.push(`| X-Powered-By | \`${r.metadata.poweredBy}\` |`);
-  if (r.metadata.wafDetected) lines.push(`| WAF | ${r.metadata.wafDetected} |`);
   lines.push(`| HTTPS | ${r.metadata.isHttps ? 'sí' : 'no'} |`);
   lines.push('');
 
@@ -94,56 +93,624 @@ export function toMarkdown(r: AuditResult): string {
 
 const HTML_STYLE = `
   :root {
-    --bg: #0a0e14; --bg-soft: #10151c; --bg-card: #141a22; --bg-line: #1c2530;
-    --fg: #d7e0ea; --fg-muted: #7a8794; --fg-dim: #4f5b68;
-    --green: #2bd57c; --blue: #3aa6ff; --yellow: #f5c542; --red: #ff5566; --purple: #c678dd;
+    --bg: #0d1117;
+    --bg-elev: #161b22;
+    --bg-soft: #1c232c;
+    --bg-mute: #21262d;
+    --border: #2a313a;
+    --border-soft: #21262d;
+    --fg: #e6edf3;
+    --fg-muted: #8b949e;
+    --fg-dim: #6e7681;
+    --ember: #d4a017;
+    --ember-soft: rgba(212, 160, 23, 0.12);
+    --sev-critical: #e5534b;
+    --sev-high: #f0883e;
+    --sev-medium: #d4a017;
+    --sev-low: #58a6ff;
+    --sev-info: #8b949e;
+    --ok: #3fb950;
   }
-  * { box-sizing: border-box; }
+  *, *::before, *::after { box-sizing: border-box; }
+  html { color-scheme: dark; }
   body {
-    margin: 0; padding: 40px 24px; background: var(--bg); color: var(--fg);
-    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  .mono, code, pre, .endpoint-link {
+    font-family: 'JetBrains Mono', 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  h1, h2, h3, h4 { font-weight: 600; letter-spacing: -0.01em; margin: 0; color: var(--fg); }
+  p { margin: 0; }
+  a { color: inherit; }
+
+  .ember-rule {
+    height: 3px;
+    background: linear-gradient(90deg, transparent 0%, var(--ember) 50%, transparent 100%);
+    opacity: 0.9;
+  }
+
+  .page { max-width: 1080px; margin: 0 auto; padding: 48px 32px 64px; }
+
+  /* ── Header ── */
+  .report-head {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 28px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  @media (min-width: 760px) {
+    .report-head { grid-template-columns: 1fr auto; align-items: end; }
+  }
+  .brand-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--fg-muted);
+    font-weight: 500;
+  }
+  .brand-mark { color: var(--fg); font-weight: 700; letter-spacing: 0.04em; }
+  .brand-mark-em { color: var(--ember); }
+  .brand-divider { width: 1px; height: 12px; background: var(--border); }
+  .report-title {
+    font-size: 28px;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+  .report-subtitle {
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--fg-dim);
+  }
+  .report-meta {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    min-width: 280px;
+  }
+  .report-meta > div {
+    display: grid;
+    grid-template-columns: 96px 1fr;
+    gap: 14px;
+    font-size: 13px;
+    align-items: baseline;
+  }
+  .report-meta dt {
+    color: var(--fg-dim);
+    text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    font-weight: 500;
+    margin: 0;
+  }
+  .report-meta dd { margin: 0; color: var(--fg); word-break: break-word; }
+  .report-meta a {
+    color: var(--fg);
+    text-decoration: none;
+    border-bottom: 1px dashed var(--border);
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .report-meta a:hover { color: var(--ember); border-color: var(--ember); }
+
+  /* ── Sections ── */
+  section { margin-top: 48px; }
+  .section-head { margin-bottom: 20px; display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .section-head h2 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--fg-muted);
+    font-weight: 600;
+  }
+  .section-head .section-sub {
+    font-size: 12px;
+    color: var(--fg-dim);
+  }
+
+  /* ── Executive summary ── */
+  .exec-card {
+    background: var(--bg-elev);
+    border: 1px solid var(--border-soft);
+    border-radius: 10px;
+    padding: 32px;
+    display: grid;
+    gap: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .exec-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: var(--ember);
+    opacity: 0.7;
+  }
+  @media (min-width: 720px) {
+    .exec-card { grid-template-columns: auto 1fr; align-items: center; }
+  }
+  .exec-score {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+  .ring-wrap { position: relative; width: 156px; height: 156px; }
+  .ring-wrap svg { width: 100%; height: 100%; }
+  .ring-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .ring-num {
+    font-size: 44px;
+    font-weight: 700;
+    color: var(--fg);
+    line-height: 1;
+    font-feature-settings: 'tnum';
+    letter-spacing: -0.02em;
+  }
+  .ring-denom {
+    font-size: 10px;
+    color: var(--fg-dim);
+    margin-top: 6px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .risk-badge {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid currentColor;
+  }
+  .risk-bajo { color: var(--ok); background: rgba(63, 185, 80, 0.08); }
+  .risk-medio { color: var(--sev-medium); background: rgba(212, 160, 23, 0.08); }
+  .risk-alto { color: var(--sev-high); background: rgba(240, 136, 62, 0.08); }
+  .risk-critico { color: var(--sev-critical); background: rgba(229, 83, 75, 0.08); }
+
+  .exec-text { display: flex; flex-direction: column; gap: 24px; }
+  .exec-lead {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--fg);
+  }
+  .exec-lead strong { color: var(--fg); font-weight: 600; }
+  .exec-lead em {
+    font-style: normal;
+    color: var(--ember);
+    font-weight: 500;
+  }
+
+  .exec-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-soft);
+  }
+  .stat { display: flex; flex-direction: column; gap: 4px; }
+  .stat-num {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--fg);
+    font-feature-settings: 'tnum';
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--fg-dim);
+    font-weight: 500;
+  }
+
+  /* ── Risk scale ── */
+  .risk-scale {
+    margin-top: 16px;
+    padding: 18px 22px 20px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border-soft);
+    border-radius: 10px;
+  }
+  .scale-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .scale-title {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--fg-dim);
+    font-weight: 500;
+  }
+  .scale-value {
+    font-size: 12px;
+    color: var(--fg-muted);
+    font-feature-settings: 'tnum';
+  }
+  .scale-value strong { color: var(--fg); }
+  .scale-track {
+    position: relative;
+    display: flex;
+    height: 8px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: var(--bg-mute);
+  }
+  .scale-band { height: 100%; opacity: 0.55; }
+  .band-critical { background: var(--sev-critical); width: 25%; }
+  .band-high { background: var(--sev-high); width: 25%; }
+  .band-medium { background: var(--sev-medium); width: 30%; }
+  .band-low { background: var(--ok); width: 20%; }
+  .scale-pointer {
+    position: absolute;
+    top: -5px;
+    width: 2px;
+    height: 18px;
+    background: var(--fg);
+    transform: translateX(-50%);
+    border-radius: 2px;
+    box-shadow: 0 0 0 2px var(--bg-elev);
+  }
+  .scale-axis {
+    display: grid;
+    grid-template-columns: 25% 25% 30% 20%;
+    margin-top: 10px;
+    font-size: 10px;
+    color: var(--fg-dim);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .scale-axis > span { text-align: center; }
+
+  /* ── Metadata grid ── */
+  .meta-grid {
+    margin: 0;
+    background: var(--bg-elev);
+    border: 1px solid var(--border-soft);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .meta-grid > div {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 16px;
+    padding: 14px 22px;
+    border-top: 1px solid var(--border-soft);
+    align-items: center;
+  }
+  .meta-grid > div:first-child { border-top: 0; }
+  .meta-grid dt {
+    color: var(--fg-dim);
+    text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    font-weight: 500;
+    margin: 0;
+  }
+  .meta-grid dd { margin: 0; color: var(--fg); word-break: break-word; }
+  .meta-grid code { font-size: 12.5px; }
+  @media (max-width: 600px) {
+    .meta-grid > div { grid-template-columns: 1fr; gap: 4px; }
+  }
+
+  /* ── Filter bar ── */
+  .filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 18px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border-soft);
+    border-radius: 10px;
+    margin-bottom: 24px;
+  }
+  .filter-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--fg-dim);
+    font-weight: 600;
+    margin-right: 4px;
+  }
+  .filter-pill {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    padding: 5px 12px;
+    border-radius: 999px;
+    border: 1px solid currentColor;
+    background: transparent;
+    user-select: none;
+    transition: opacity 0.18s ease, background-color 0.18s ease, transform 0.1s ease;
+    font-family: inherit;
+  }
+  .filter-pill:active { transform: scale(0.97); }
+  .filter-pill .count {
+    background: currentColor;
+    border-radius: 999px;
+    padding: 1px 6px;
+    font-size: 9px;
+    min-width: 18px;
+    text-align: center;
+    font-feature-settings: 'tnum';
+  }
+  .filter-pill .count > b { color: var(--bg-elev); font-weight: 700; }
+  .filter-pill.is-off {
+    opacity: 0.35;
+    border-style: dashed;
+  }
+  .filter-pill.sev-critical { color: var(--sev-critical); }
+  .filter-pill.sev-high { color: var(--sev-high); }
+  .filter-pill.sev-medium { color: var(--sev-medium); }
+  .filter-pill.sev-low { color: var(--sev-low); }
+  .filter-pill.sev-info { color: var(--sev-info); }
+
+  .filter-reset {
+    margin-left: auto;
+    background: transparent;
+    color: var(--fg-dim);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-weight: 600;
+    padding: 5px 12px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .filter-reset:hover { color: var(--ember); border-color: var(--ember); }
+
+  /* ── Severity group ── */
+  .sev-group { margin-top: 28px; }
+  .sev-group:first-of-type { margin-top: 0; }
+  .sev-group-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .sev-group-head h3 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-weight: 700;
+  }
+  .sev-group-count {
+    font-size: 11px;
+    color: var(--fg-dim);
+    font-weight: 500;
+    margin-left: auto;
+    font-feature-settings: 'tnum';
+  }
+  .sev-group.sev-critical h3 { color: var(--sev-critical); }
+  .sev-group.sev-high h3 { color: var(--sev-high); }
+  .sev-group.sev-medium h3 { color: var(--sev-medium); }
+  .sev-group.sev-low h3 { color: var(--sev-low); }
+  .sev-group.sev-info h3 { color: var(--sev-info); }
+  .sev-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  /* ── Finding card ── */
+  .finding {
+    background: var(--bg-elev);
+    border: 1px solid var(--border-soft);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    border-left: 3px solid var(--sev-info);
+  }
+  .finding[data-severity="critical"] { border-left-color: var(--sev-critical); }
+  .finding[data-severity="high"] { border-left-color: var(--sev-high); }
+  .finding[data-severity="medium"] { border-left-color: var(--sev-medium); }
+  .finding[data-severity="low"] { border-left-color: var(--sev-low); }
+
+  .finding-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border-soft);
+    flex-wrap: wrap;
+  }
+  .finding-sev {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid currentColor;
+    flex-shrink: 0;
+  }
+  .finding-sev.sev-critical { color: var(--sev-critical); background: rgba(229, 83, 75, 0.1); }
+  .finding-sev.sev-high { color: var(--sev-high); background: rgba(240, 136, 62, 0.1); }
+  .finding-sev.sev-medium { color: var(--sev-medium); background: rgba(212, 160, 23, 0.1); }
+  .finding-sev.sev-low { color: var(--sev-low); background: rgba(88, 166, 255, 0.1); }
+  .finding-sev.sev-info { color: var(--sev-info); background: rgba(139, 148, 158, 0.1); }
+  .finding-title {
+    flex: 1;
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--fg);
+    min-width: 0;
+    line-height: 1.35;
+  }
+  .finding-cat {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--fg-muted);
+    font-weight: 600;
+    background: var(--bg-mute);
+    padding: 4px 9px;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+
+  .finding-body { padding: 16px 18px; display: grid; gap: 14px; }
+  .finding-row {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+  @media (max-width: 600px) {
+    .finding-row { grid-template-columns: 1fr; gap: 4px; }
+  }
+  .row-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--fg-dim);
+    font-weight: 700;
+    padding-top: 3px;
+  }
+  .row-value {
+    color: var(--fg);
+    font-size: 13.5px;
+    line-height: 1.65;
+  }
+  .row-value code {
+    background: var(--bg-mute);
+    border: 1px solid var(--border-soft);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--fg);
+  }
+  .row-value pre {
+    background: var(--bg);
+    border: 1px solid var(--border-soft);
+    padding: 12px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    color: var(--fg-muted);
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    margin: 0;
     line-height: 1.55;
   }
-  .container { max-width: 960px; margin: 0 auto; }
-  h1 { color: var(--green); font-size: 28px; margin: 0 0 8px; }
-  h2 { color: var(--fg); font-size: 20px; margin: 32px 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--bg-line); }
-  h3 { font-size: 16px; margin: 24px 0 8px; }
-  h4 { font-size: 14px; margin: 16px 0 6px; }
-  .meta { color: var(--fg-muted); font-size: 13px; margin-bottom: 24px; }
-  .badge { display: inline-block; padding: 2px 8px; border: 1px solid currentColor; border-radius: 4px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
-  .sev-critical { color: var(--red); }
-  .sev-high { color: var(--purple); }
-  .sev-medium { color: var(--yellow); }
-  .sev-low { color: var(--blue); }
-  .sev-info { color: var(--fg-muted); }
-  .score-box { display: flex; gap: 24px; align-items: center; padding: 20px; background: var(--bg-card); border: 1px solid var(--bg-line); border-radius: 8px; margin: 20px 0; }
-  .score { font-size: 56px; font-weight: 700; }
-  .score-info { flex: 1; }
-  .kv { display: grid; grid-template-columns: 160px 1fr; gap: 12px; font-size: 13px; padding: 4px 0; }
-  .kv > span:first-child { color: var(--fg-muted); text-transform: uppercase; font-size: 11px; letter-spacing: 0.08em; }
-  .finding { background: var(--bg-card); border: 1px solid var(--bg-line); border-radius: 8px; padding: 16px; margin: 12px 0; }
-  .finding-head { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
-  .finding-title { font-weight: 600; }
-  .finding-row { margin: 6px 0; font-size: 13px; }
-  .finding-row strong { color: var(--fg-muted); text-transform: uppercase; font-size: 11px; letter-spacing: 0.08em; display: inline-block; min-width: 110px; }
-  pre, code { font-family: inherit; background: var(--bg-soft); border: 1px solid var(--bg-line); border-radius: 4px; padding: 2px 6px; font-size: 12px; color: var(--green); }
-  pre { padding: 10px; white-space: pre-wrap; word-break: break-word; }
-  footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--bg-line); color: var(--fg-dim); font-size: 11px; text-align: center; }
-  a { color: var(--blue); }
+
+  .endpoint-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--ember);
+    text-decoration: none;
+    font-size: 12.5px;
+    padding: 5px 11px;
+    background: var(--ember-soft);
+    border: 1px solid rgba(212, 160, 23, 0.3);
+    border-radius: 6px;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    word-break: break-all;
+  }
+  .endpoint-link:hover { background: rgba(212, 160, 23, 0.22); border-color: var(--ember); }
+  .endpoint-link:active { transform: scale(0.985); }
+  .endpoint-link .ext { font-size: 11px; opacity: 0.85; }
+
+  /* ── No findings ── */
+  .no-findings {
+    background: var(--bg-elev);
+    border: 1px solid var(--border-soft);
+    border-radius: 10px;
+    padding: 36px;
+    text-align: center;
+    color: var(--fg);
+    font-size: 14px;
+  }
+  .no-findings .ok-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: rgba(63, 185, 80, 0.1);
+    color: var(--ok);
+    margin-bottom: 14px;
+    font-size: 22px;
+    font-weight: 700;
+    border: 1px solid rgba(63, 185, 80, 0.4);
+  }
+
+  .empty-filter {
+    background: var(--bg-elev);
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    text-align: center;
+    color: var(--fg-dim);
+    font-size: 13px;
+  }
+
+  /* ── Footer ── */
+  .report-footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-soft);
+    text-align: center;
+    color: var(--fg-dim);
+    font-size: 12px;
+  }
+  .report-footer a { color: var(--fg-muted); text-decoration: none; }
+  .report-footer a:hover { color: var(--ember); }
+  .footer-small { margin-top: 6px; font-size: 11px; color: var(--fg-dim); }
+
+  /* ── Print ── */
   @media print {
-    body { background: white; color: #111; }
-    .container { max-width: 100%; }
-    h1 { color: #0a7f3f; }
-    .score-box, .finding { background: #f7f7f7; border-color: #ddd; }
-    pre, code { background: #f0f0f0; color: #0a7f3f; border-color: #ddd; }
-    .sev-critical { color: #b00020; }
-    .sev-high { color: #6a1b9a; }
-    .sev-medium { color: #a06000; }
-    .sev-low { color: #1565c0; }
-    .sev-info { color: #555; }
-    footer { color: #888; border-color: #ccc; }
-    h2 { border-color: #ccc; }
-    .kv > span:first-child, .finding-row strong { color: #555; }
+    :root {
+      --bg: #ffffff;
+      --bg-elev: #fafafa;
+      --bg-soft: #f3f4f6;
+      --bg-mute: #ececec;
+      --border: #d0d0d0;
+      --border-soft: #e5e5e5;
+      --fg: #1f1f1f;
+      --fg-muted: #555;
+      --fg-dim: #777;
+    }
+    body { background: white; color: var(--fg); }
+    .ember-rule { background: var(--ember); }
+    .filter-bar, .filter-reset { display: none; }
+    .exec-card, .meta-grid, .finding, .risk-scale, .no-findings { box-shadow: none; }
+    .page { padding: 24px 18px; }
+    .finding { page-break-inside: avoid; }
   }
 `;
 
@@ -156,81 +723,328 @@ function escapeHtml(s: string): string {
     .replace(/'/g, '&#39;');
 }
 
+function riskClass(label: string): string {
+  return label.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+
+function scoreColor(score: number): string {
+  if (score >= 80) return '#3fb950';
+  if (score >= 50) return '#d4a017';
+  if (score >= 25) return '#f0883e';
+  return '#e5534b';
+}
+
+function scoreRingSvg(score: number, color: string): string {
+  const r = 50;
+  const circ = 2 * Math.PI * r;
+  const dash = (Math.max(0, Math.min(100, score)) / 100) * circ;
+  return `
+    <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-label="Score ${score} de 100">
+      <circle cx="60" cy="60" r="${r}" stroke="#21262d" stroke-width="9" fill="none" />
+      <circle cx="60" cy="60" r="${r}" stroke="${color}" stroke-width="9" fill="none"
+        stroke-dasharray="${dash.toFixed(2)} ${circ.toFixed(2)}" stroke-linecap="round"
+        transform="rotate(-90 60 60)" />
+    </svg>
+  `;
+}
+
+function buildExecutiveNarrative(r: AuditResult, counts: Record<Severity, number>): string {
+  const total = r.findings.length;
+  const host = escapeHtml(r.target.replace(/^https?:\/\//, ''));
+
+  if (total === 0) {
+    return `El análisis pasivo de <strong>${host}</strong> no identificó hallazgos relevantes. La configuración expuesta del sitio cumple con todos los controles verificados sin necesidad de pruebas intrusivas. Se recomienda mantener el ritmo actual de actualizaciones y monitoreo periódico.`;
+  }
+  if (counts.critical > 0) {
+    return `El análisis identificó <strong>${counts.critical} hallazgo${counts.critical === 1 ? '' : 's'} de severidad <em>crítica</em></strong> en ${host} que requieren acción inmediata. Los riesgos detectados podrían facilitar el compromiso del sitio si son explotados por un atacante con conocimiento básico. Se recomienda priorizar la remediación de los puntos críticos <strong>antes del próximo despliegue productivo</strong>.`;
+  }
+  if (counts.high > 0) {
+    return `Se detectaron <strong>${counts.high} vulnerabilidad${counts.high === 1 ? '' : 'es'} de <em>alto impacto</em></strong> en ${host}. Aunque no representan un compromiso inmediato, exponen información sensible o facilitan ataques posteriores de enumeración y bruteforce. La remediación debería abordarse en el corto plazo, dentro del próximo ciclo de mantenimiento.`;
+  }
+  if (counts.medium > 0) {
+    const mlow = counts.medium + counts.low;
+    return `El análisis de ${host} reveló <strong>${mlow} hallazgo${mlow === 1 ? '' : 's'} de severidad <em>media o baja</em></strong>. La postura general es razonable, pero existen ajustes recomendados de hardening para reducir la superficie de ataque y endurecer la configuración expuesta.`;
+  }
+  return `<strong>${host}</strong> presenta una postura de seguridad sólida. Los ${total} hallazgo${total === 1 ? '' : 's'} identificado${total === 1 ? '' : 's'} son de carácter <em>informativo</em> o de bajo impacto, sin riesgo inmediato pero con oportunidades menores de endurecimiento.`;
+}
+
+const FILTER_SCRIPT = `
+(function() {
+  var ALL = ['critical','high','medium','low','info'];
+  var pills = Array.prototype.slice.call(document.querySelectorAll('[data-filter]'));
+  var findings = Array.prototype.slice.call(document.querySelectorAll('[data-severity]'));
+  var groups = Array.prototype.slice.call(document.querySelectorAll('[data-sev-group]'));
+  var resetBtn = document.querySelector('[data-reset]');
+  var emptyMsg = document.querySelector('[data-empty]');
+  var active = {};
+  ALL.forEach(function(s) { active[s] = true; });
+
+  function activeCount() {
+    var n = 0;
+    ALL.forEach(function(s) { if (active[s]) n++; });
+    return n;
+  }
+
+  function apply() {
+    var visibleTotal = 0;
+    findings.forEach(function(el) {
+      var sev = el.getAttribute('data-severity');
+      var visible = !!active[sev];
+      el.style.display = visible ? '' : 'none';
+      if (visible) visibleTotal++;
+    });
+    groups.forEach(function(g) {
+      var sev = g.getAttribute('data-sev-group');
+      g.style.display = active[sev] ? '' : 'none';
+    });
+    pills.forEach(function(p) {
+      var sev = p.getAttribute('data-filter');
+      if (active[sev]) p.classList.remove('is-off');
+      else p.classList.add('is-off');
+    });
+    if (emptyMsg) emptyMsg.style.display = (findings.length > 0 && visibleTotal === 0) ? '' : 'none';
+  }
+
+  pills.forEach(function(p) {
+    p.addEventListener('click', function() {
+      var sev = p.getAttribute('data-filter');
+      active[sev] = !active[sev];
+      if (activeCount() === 0) ALL.forEach(function(s) { active[s] = true; });
+      apply();
+    });
+  });
+
+  if (resetBtn) {
+    resetBtn.addEventListener('click', function() {
+      ALL.forEach(function(s) { active[s] = true; });
+      apply();
+    });
+  }
+
+  apply();
+})();
+`;
+
 export function toHtml(r: AuditResult): string {
   const counts: Record<Severity, number> = { critical: 0, high: 0, medium: 0, low: 0, info: 0 };
   for (const f of r.findings) counts[f.severity]++;
 
-  const scoreColor =
-    r.score >= 80 ? '#2bd57c' : r.score >= 50 ? '#f5c542' : r.score >= 25 ? '#c678dd' : '#ff5566';
+  const color = scoreColor(r.score);
+  const rk = riskClass(r.riskLabel);
+  const narrative = buildExecutiveNarrative(r, counts);
+  const total = r.findings.length;
+  const critHigh = counts.critical + counts.high;
+  const cats = new Set(r.findings.map((f) => f.category));
+  const targetSafe = escapeHtml(r.target);
+
+  const filterPills = SEV_ORDER.map((s) => {
+    const c = counts[s];
+    return `<button type="button" class="filter-pill sev-${s}" data-filter="${s}" aria-pressed="true">
+        <span>${SEV_LABEL[s]}</span>
+        <span class="count"><b>${c}</b></span>
+      </button>`;
+  }).join('');
 
   const findingsHtml = SEV_ORDER.map((sev) => {
     const items = r.findings.filter((f) => f.severity === sev);
     if (items.length === 0) return '';
     return `
-      <h3 class="sev-${sev}">${SEV_LABEL[sev]} <span style="color:var(--fg-dim)">(${items.length})</span></h3>
-      ${items
-        .map(
-          (f) => `
-        <div class="finding">
-          <div class="finding-head">
-            <span class="badge sev-${f.severity}">${SEV_LABEL[f.severity]}</span>
-            <span class="finding-title">${escapeHtml(f.title)}</span>
-            <span style="margin-left:auto;color:var(--fg-dim);font-size:11px">[${f.category}]</span>
-          </div>
-          <div class="finding-row"><strong>Detalle</strong> ${escapeHtml(f.detail)}</div>
-          ${f.evidence ? `<div class="finding-row"><strong>Evidencia</strong></div><pre>${escapeHtml(f.evidence)}</pre>` : ''}
-          <div class="finding-row"><strong>Recomendación</strong> ${escapeHtml(f.recommendation)}</div>
+      <div class="sev-group sev-${sev}" data-sev-group="${sev}">
+        <div class="sev-group-head">
+          <span class="sev-dot"></span>
+          <h3>${SEV_LABEL[sev]}</h3>
+          <span class="sev-group-count">${items.length} hallazgo${items.length === 1 ? '' : 's'}</span>
         </div>
-      `
-        )
-        .join('')}
-    `;
+        ${items
+          .map((f) => {
+            const url = findingUrl(f, r.target);
+            return `
+        <article class="finding" data-severity="${f.severity}">
+          <header class="finding-head">
+            <span class="finding-sev sev-${f.severity}">${SEV_LABEL[f.severity]}</span>
+            <h4 class="finding-title">${escapeHtml(f.title)}</h4>
+            <span class="finding-cat">${escapeHtml(f.category)}</span>
+          </header>
+          <div class="finding-body">
+            <div class="finding-row">
+              <div class="row-label">Detalle</div>
+              <div class="row-value">${escapeHtml(f.detail)}</div>
+            </div>
+            ${
+              url
+                ? `<div class="finding-row">
+                    <div class="row-label">Endpoint</div>
+                    <div class="row-value"><a class="endpoint-link" href="${escapeHtml(
+                      url
+                    )}" target="_blank" rel="noopener noreferrer">${escapeHtml(
+                    url
+                  )} <span class="ext">↗</span></a></div>
+                  </div>`
+                : ''
+            }
+            ${
+              f.evidence
+                ? `<div class="finding-row">
+                    <div class="row-label">Evidencia</div>
+                    <div class="row-value"><pre><code>${escapeHtml(f.evidence)}</code></pre></div>
+                  </div>`
+                : ''
+            }
+            <div class="finding-row">
+              <div class="row-label">Recomendación</div>
+              <div class="row-value">${escapeHtml(f.recommendation)}</div>
+            </div>
+          </div>
+        </article>`;
+          })
+          .join('')}
+      </div>`;
   }).join('');
+
+  const metadataRows = [
+    `<div><dt>HTTPS</dt><dd>${r.metadata.isHttps ? 'Sí' : 'No'}</dd></div>`,
+    r.metadata.wpVersion
+      ? `<div><dt>Versión WP</dt><dd><code>${escapeHtml(r.metadata.wpVersion)}</code></dd></div>`
+      : '',
+    r.metadata.poweredBy
+      ? `<div><dt>X-Powered-By</dt><dd><code>${escapeHtml(r.metadata.poweredBy)}</code></dd></div>`
+      : '',
+    `<div><dt>Modo de análisis</dt><dd>Pasivo (GET / HEAD) — sin payloads</dd></div>`,
+    `<div><dt>Duración</dt><dd>${r.durationMs} ms</dd></div>`,
+  ]
+    .filter(Boolean)
+    .join('');
 
   return `<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Auditoría WordPress — ${escapeHtml(r.target)}</title>
+  <title>Informe de Auditoría — ${targetSafe}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>${HTML_STYLE}</style>
 </head>
 <body>
-  <div class="container">
-    <h1>Auditoría WordPress</h1>
-    <div class="meta">
-      <strong>${escapeHtml(r.target)}</strong> · Generado el ${fmtDate(r.startedAt)} ·
-      Duración ${r.durationMs} ms · <a href="https://hacking.pwnvader.com">hacking.pwnvader.com</a>
-    </div>
+  <div class="ember-rule"></div>
+  <main class="page">
+    <header class="report-head">
+      <div>
+        <div class="brand-row">
+          <span class="brand-mark">pwn<span class="brand-mark-em">Vader</span></span>
+          <span class="brand-divider"></span>
+          <span>CMS Security Audit</span>
+        </div>
+        <h1 class="report-title">Informe de Auditoría — WordPress</h1>
+        <p class="report-subtitle">Análisis pasivo de configuración expuesta y superficie de ataque</p>
+      </div>
+      <dl class="report-meta">
+        <div><dt>Target</dt><dd><a href="${targetSafe}" target="_blank" rel="noopener noreferrer">${targetSafe}</a></dd></div>
+        <div><dt>Generado</dt><dd>${fmtDate(r.startedAt)}</dd></div>
+        <div><dt>Duración</dt><dd>${r.durationMs} ms</dd></div>
+        <div><dt>Hallazgos</dt><dd>${total}</dd></div>
+      </dl>
+    </header>
 
-    <div class="score-box">
-      <div class="score" style="color:${scoreColor}">${r.score}</div>
-      <div class="score-info">
-        <div style="color:${scoreColor};font-size:18px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em">${r.riskLabel}</div>
-        <div style="color:var(--fg-muted);font-size:12px;margin-top:4px">
-          ${SEV_ORDER.filter((s) => counts[s] > 0)
-            .map((s) => `<span class="sev-${s}">${SEV_LABEL[s]}:${counts[s]}</span>`)
-            .join(' · ')}
-          ${r.findings.length === 0 ? 'Sin hallazgos' : ''}
+    <section>
+      <div class="section-head">
+        <h2>Resumen ejecutivo</h2>
+        <span class="section-sub">Visión general de la postura de seguridad</span>
+      </div>
+      <div class="exec-card">
+        <div class="exec-score">
+          <div class="ring-wrap">
+            ${scoreRingSvg(r.score, color)}
+            <div class="ring-center">
+              <div class="ring-num">${r.score}</div>
+              <div class="ring-denom">de 100</div>
+            </div>
+          </div>
+          <div class="risk-badge risk-${rk}">Riesgo · ${escapeHtml(r.riskLabel)}</div>
+        </div>
+        <div class="exec-text">
+          <p class="exec-lead">${narrative}</p>
+          <div class="exec-stats">
+            <div class="stat">
+              <span class="stat-num">${total}</span>
+              <span class="stat-label">hallazgos totales</span>
+            </div>
+            <div class="stat">
+              <span class="stat-num">${critHigh}</span>
+              <span class="stat-label">alto o crítico</span>
+            </div>
+            <div class="stat">
+              <span class="stat-num">${cats.size}</span>
+              <span class="stat-label">categorías afectadas</span>
+            </div>
+            <div class="stat">
+              <span class="stat-num">${r.metadata.isHttps ? 'Sí' : 'No'}</span>
+              <span class="stat-label">HTTPS</span>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <h2>Metadata</h2>
-    <div class="kv"><span>HTTPS</span><span>${r.metadata.isHttps ? 'sí' : 'no'}</span></div>
-    ${r.metadata.wpVersion ? `<div class="kv"><span>Versión WP</span><span><code>${escapeHtml(r.metadata.wpVersion)}</code></span></div>` : ''}
-    ${r.metadata.server ? `<div class="kv"><span>Server</span><span><code>${escapeHtml(r.metadata.server)}</code></span></div>` : ''}
-    ${r.metadata.poweredBy ? `<div class="kv"><span>X-Powered-By</span><span><code>${escapeHtml(r.metadata.poweredBy)}</code></span></div>` : ''}
-    ${r.metadata.wafDetected ? `<div class="kv"><span>WAF</span><span>${escapeHtml(r.metadata.wafDetected)}</span></div>` : ''}
+      <div class="risk-scale">
+        <div class="scale-top">
+          <span class="scale-title">Escala de riesgo</span>
+          <span class="scale-value"><strong>${r.score}</strong> / 100 — ${escapeHtml(r.riskLabel)}</span>
+        </div>
+        <div class="scale-track">
+          <div class="scale-band band-critical"></div>
+          <div class="scale-band band-high"></div>
+          <div class="scale-band band-medium"></div>
+          <div class="scale-band band-low"></div>
+          <div class="scale-pointer" style="left: ${Math.max(0, Math.min(100, r.score))}%"></div>
+        </div>
+        <div class="scale-axis">
+          <span>Crítico</span>
+          <span>Alto</span>
+          <span>Medio</span>
+          <span>Bajo</span>
+        </div>
+      </div>
+    </section>
 
-    <h2>Hallazgos</h2>
-    ${r.findings.length === 0 ? '<p style="color:var(--green)">✓ Sin hallazgos. El sitio pasó todos los checks pasivos.</p>' : findingsHtml}
+    <section>
+      <div class="section-head">
+        <h2>Metadata técnica</h2>
+        <span class="section-sub">Headers, fingerprinting y entorno detectado</span>
+      </div>
+      <dl class="meta-grid">${metadataRows}</dl>
+    </section>
 
-    <footer>
-      Reporte 100% pasivo. No se ejecutaron exploits ni se modificó el sistema objetivo.<br/>
-      Generado por <a href="https://hacking.pwnvader.com">hacking.pwnvader.com</a> · pwnVader
+    <section>
+      <div class="section-head">
+        <h2>Hallazgos detallados</h2>
+        <span class="section-sub">${total} hallazgo${total === 1 ? '' : 's'} · filtra por severidad</span>
+      </div>
+
+      ${
+        total === 0
+          ? `<div class="no-findings">
+              <div class="ok-mark">✓</div>
+              <div><strong>Sin hallazgos.</strong> El sitio pasó todos los checks pasivos del scanner.</div>
+            </div>`
+          : `<div class="filter-bar">
+              <span class="filter-label">Filtrar</span>
+              ${filterPills}
+              <button type="button" class="filter-reset" data-reset>Reset</button>
+            </div>
+            <div class="empty-filter" data-empty style="display:none">
+              Ningún hallazgo coincide con los filtros activos.
+            </div>
+            ${findingsHtml}`
+      }
+    </section>
+
+    <footer class="report-footer">
+      <p>Reporte 100% pasivo · No se enviaron credenciales ni se modificó el sistema objetivo</p>
+      <p class="footer-small">Generado por <a href="https://hacking.pwnvader.com">hacking.pwnvader.com</a> — pwnVader</p>
     </footer>
-  </div>
+  </main>
+  <script>${FILTER_SCRIPT}</script>
 </body>
 </html>`;
 }

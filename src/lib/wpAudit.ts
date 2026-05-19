@@ -32,9 +32,7 @@ export interface AuditResult {
   metadata: {
     isHttps: boolean;
     wpVersion: string | null;
-    server: string | null;
     poweredBy: string | null;
-    wafDetected: string | null;
   };
 }
 
@@ -232,16 +230,6 @@ const ENDPOINTS_TO_CHECK: Array<{
 
 // ──────────────────────────── helpers ────────────────────────────
 
-function detectWAF(headers: Record<string, string>): string | null {
-  if (headers['cf-ray'] || headers['server']?.toLowerCase().includes('cloudflare')) return 'Cloudflare';
-  if (headers['x-sucuri-id']) return 'Sucuri';
-  if (headers['server']?.toLowerCase().includes('akamai')) return 'Akamai';
-  if (headers['x-cdn']?.toLowerCase().includes('imperva')) return 'Imperva';
-  if (headers['x-amz-cf-id']) return 'AWS CloudFront';
-  if (headers['x-cdn']) return headers['x-cdn'];
-  return null;
-}
-
 function extractWpVersion(body: string, headers: Record<string, string>): string | null {
   // 1) <meta name="generator" content="WordPress X.Y.Z" />
   const meta = body.match(/<meta[^>]+name=["']generator["'][^>]+content=["']WordPress\s+([0-9.]+)["']/i);
@@ -314,20 +302,9 @@ export async function auditWordpress(
     }
   }
 
-  // server / powered-by leaks
-  const server = root.headers['server'] ?? null;
+  // x-powered-by leak (server header se omite — el Worker pasa por CF y los
+  // valores no son fiables para este check)
   const poweredBy = root.headers['x-powered-by'] ?? null;
-  if (server && /[\d.]/.test(server)) {
-    findings.push({
-      id: 'header:server-version',
-      title: 'Header Server revela versión',
-      severity: 'low',
-      category: 'headers',
-      detail: `Server: ${server}`,
-      recommendation: 'Oculta o sanitiza el header `Server`. En nginx: `server_tokens off;`. En Apache: `ServerTokens Prod`.',
-      evidence: `Server: ${server}`,
-    });
-  }
   if (poweredBy) {
     findings.push({
       id: 'header:powered-by',
@@ -447,9 +424,6 @@ export async function auditWordpress(
     }
   }
 
-  // ── 5. WAF ──
-  const waf = detectWAF(root.headers);
-
   // ── score ──
   let score = 100;
   for (const f of findings) score -= SEVERITY_PENALTY[f.severity];
@@ -474,9 +448,7 @@ export async function auditWordpress(
     metadata: {
       isHttps: base.protocol === 'https:',
       wpVersion,
-      server,
       poweredBy,
-      wafDetected: waf,
     },
   };
 }
