@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
-import { Calculator } from 'lucide-react';
 import Prompt from '../../components/Prompt';
 import Terminal from '../../components/Terminal';
 import Input from '../../components/ui/Input';
 import CopyButton from '../../components/CopyButton';
+import { CalculatorIcon } from '../../components/CustomIcons';
 import { analyze, SubnetError, type SubnetInfo } from '../../lib/subnet';
 import { cn } from '../../lib/cn';
 
@@ -38,7 +38,7 @@ export default function Subnet() {
         <Prompt cwd="~/networking" command={`./subnet-calc ${state.ip}/${state.cidr || '?'}`} />
         <div className="flex items-start gap-4">
           <div className="hidden sm:flex h-12 w-12 items-center justify-center rounded-lg border border-accent/40 bg-accent/5 shadow-glow">
-            <Calculator className="h-6 w-6 text-accent" />
+            <CalculatorIcon className="h-6 w-6 text-accent" />
           </div>
           <div>
             <h1 className="text-3xl font-bold text-text-primary font-mono">Subnet Calculator</h1>

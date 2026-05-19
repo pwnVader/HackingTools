@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  Terminal as TerminalIcon,
   Ear,
   Wand2,
   Search,
@@ -17,6 +16,7 @@ import Prompt from '../../components/Prompt';
 import Terminal from '../../components/Terminal';
 import Input from '../../components/ui/Input';
 import Select from '../../components/ui/Select';
+import { BashIcon } from '../../components/CustomIcons';
 import {
   PAYLOADS,
   SHELL_PATHS,
@@ -183,7 +183,7 @@ export default function RevShell() {
         <Prompt cwd="~/networking" command={`./revshell-gen --lhost ${ctx.lhost} --lport ${ctx.lport}`} />
         <div className="flex items-start gap-4">
           <div className="hidden sm:flex h-12 w-12 items-center justify-center rounded-lg border border-accent/40 bg-accent/5 shadow-glow">
-            <TerminalIcon className="h-6 w-6 text-accent" />
+            <BashIcon className="h-6 w-6 text-accent" />
           </div>
           <div>
             <h1 className="text-3xl font-bold text-text-primary font-mono">Reverse Shell Generator</h1>

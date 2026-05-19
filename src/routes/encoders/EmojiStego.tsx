@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Smile } from 'lucide-react';
 import Prompt from '../../components/Prompt';
 import Terminal from '../../components/Terminal';
 import Textarea from '../../components/ui/Textarea';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import CopyButton from '../../components/CopyButton';
+import { EmojiIcon } from '../../components/CustomIcons';
 import {
   encodeStego,
   decodeStego,
@@ -51,7 +51,7 @@ export default function EmojiStego() {
         <Prompt cwd="~/encoders" command={`./emoji-stego --${mode}`} />
         <div className="flex items-start gap-4">
           <div className="hidden sm:flex h-12 w-12 items-center justify-center rounded-lg border border-accent/40 bg-accent/5 shadow-glow">
-            <Smile className="h-6 w-6 text-accent" />
+            <EmojiIcon className="h-6 w-6 text-accent" />
           </div>
           <div>
             <h1 className="text-3xl font-bold text-fg font-mono tracking-tight">Emoji Stego</h1>

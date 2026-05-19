@@ -1,4 +1,4 @@
-import { Calculator, Terminal as TerminalIcon } from 'lucide-react';
+import { CalculatorIcon, BashIcon } from '../../components/CustomIcons';
 import SectionIndex from '../SectionIndex';
 
 export default function NetworkingIndex() {
@@ -14,14 +14,14 @@ export default function NetworkingIndex() {
           command: './subnet-calc',
           title: 'Subnet Calculator',
           description: 'IPv4 + CIDR → network, broadcast, hosts, máscara, wildcard, binario y clase. Cálculo instantáneo en cliente.',
-          icon: <Calculator className="h-5 w-5" />,
+          icon: <CalculatorIcon className="h-5 w-5" />,
         },
         {
           to: '/networking/revshell',
           command: './revshell-gen',
           title: 'Reverse Shell Generator',
           description: 'Más de 20 plantillas (Bash, Python, PHP, PowerShell, nc…) con encoding URL/Base64/PS-enc, listeners y TTY upgrades.',
-          icon: <TerminalIcon className="h-5 w-5" />,
+          icon: <BashIcon className="h-5 w-5" />,
         },
       ]}
     />
