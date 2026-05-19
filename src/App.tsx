@@ -8,6 +8,8 @@ import Subnet from './routes/networking/Subnet';
 import RevShell from './routes/networking/RevShell';
 import CmsIndex from './routes/cms';
 import Wordpress from './routes/cms/Wordpress';
+import Joomla from './routes/cms/Joomla';
+import Drupal from './routes/cms/Drupal';
 import EncodersIndex from './routes/encoders';
 import Recipes from './routes/encoders/Recipes';
 import EmojiStego from './routes/encoders/EmojiStego';
@@ -27,6 +29,8 @@ export default function App() {
         <Route path="cms">
           <Route index element={<CmsIndex />} />
           <Route path="wordpress" element={<Wordpress />} />
+          <Route path="joomla" element={<Joomla />} />
+          <Route path="drupal" element={<Drupal />} />
         </Route>
 
         <Route path="encoders">

@@ -20,16 +20,14 @@ export default function CmsIndex() {
           to: '/cms/joomla',
           command: './joomla-audit',
           title: 'Joomla',
-          description: 'Próximamente: checks de versión, plugins/extensions expuestos, archivos sensibles.',
-          status: 'soon',
+          description: 'Detección pasiva serverless de versión del núcleo, manifiestos expuestos (.xml), plantillas de configuración, directorios administrativos expuestos y análisis estricto de cabeceras HTTP.',
           icon: <Joomla className="h-6 w-6" />,
         },
         {
           to: '/cms/drupal',
           command: './drupal-audit',
           title: 'Drupal',
-          description: 'Próximamente: detección de versión, módulos, archivos CHANGELOG y configuración expuesta.',
-          status: 'soon',
+          description: 'Detección pasiva de versión core mediante CHANGELOG, instaladores activos, fugas de configuración críticas (.php, .bak) y cumplimiento de directivas de seguridad HTTP.',
           icon: <Drupal className="h-6 w-6" />,
         },
       ]}

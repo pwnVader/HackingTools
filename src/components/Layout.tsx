@@ -2,11 +2,12 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useMemo } from 'react';
 import { cn } from '../lib/cn';
 import FloatingTerminal from './FloatingTerminal';
+import { KaliIcon } from './CustomIcons';
 
 const NAV = [
   { to: '/networking', label: 'networking', desc: 'subnetting · reverse shells' },
-  { to: '/cms', label: 'cms-audit', desc: 'wordpress · más pronto' },
-  { to: '/encoders', label: 'encoders', desc: 'b64 · url · hash · emoji-stego' },
+  { to: '/cms', label: 'cms-audit', desc: 'wordpress' },
+  { to: '/encoders', label: 'encoders', desc: 'b64 · url · stego' },
 ];
 
 function cwdFromPath(pathname: string) {
@@ -19,11 +20,13 @@ export default function Layout() {
   const cwd = useMemo(() => cwdFromPath(loc.pathname), [loc.pathname]);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-bgBase text-textPrimary relative font-mono select-none overflow-x-hidden">
       <Header cwd={cwd} />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 md:py-10">
+      
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 md:py-10 z-10">
         <Outlet />
       </main>
+
       <Footer />
       <FloatingTerminal />
     </div>
@@ -32,34 +35,36 @@ export default function Layout() {
 
 function Header({ cwd }: { cwd: string }) {
   return (
-    <header className="border-b border-bg-line bg-bg-soft/80 backdrop-blur">
+    <header className="border-b border-borderCustom bg-bgSurface/80 backdrop-blur z-20 sticky top-0">
       <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:justify-between">
         <Link to="/" className="flex items-center gap-3 group">
-          <div className="flex h-2 items-center gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-accent-red/80" />
-            <span className="h-2.5 w-2.5 rounded-full bg-accent-yellow/80" />
-            <span className="h-2.5 w-2.5 rounded-full bg-accent-green/80" />
+          <div className="flex items-center gap-1 bg-bgElevated border border-borderCustom rounded px-2.5 py-1 text-xs">
+            <KaliIcon className="h-4.5 w-4.5 text-accent animate-pulse" />
+            <span className="h-2 w-2 rounded-full bg-accent/70" />
+            <span className="h-2 w-2 rounded-full bg-success/70" />
           </div>
           <div className="font-mono text-sm">
             <span className="text-prompt-user">pwnvader㉿kali</span>
-            <span className="text-fg-muted">:</span>
+            <span className="text-textMuted">:</span>
             <span className="text-prompt-path">{cwd}</span>
-            <span className="text-accent-red">$</span>
-            <span className="ml-1 text-fg-muted group-hover:text-accent-green transition">hacking-toolkit</span>
+            <span className="text-accent font-bold">$</span>
+            <span className="ml-2 text-textMuted group-hover:text-accent transition duration-200">
+              ./pwn-toolkit
+            </span>
           </div>
         </Link>
 
-        <nav className="flex flex-wrap items-center gap-1 text-sm">
+        <nav className="flex flex-wrap items-center gap-2 text-sm">
           {NAV.map((n) => (
             <NavLink
               key={n.to}
               to={n.to}
               className={({ isActive }) =>
                 cn(
-                  'rounded px-3 py-1.5 font-mono transition',
+                  'rounded-md px-3.5 py-1.5 font-mono border transition duration-200',
                   isActive
-                    ? 'border border-accent-green/50 text-accent-green bg-accent-green/5'
-                    : 'border border-transparent text-fg-muted hover:text-fg hover:border-bg-line'
+                    ? 'border-accent/40 text-accent bg-accent/5 shadow-[0_0_8px_rgba(203,166,247,0.08)]'
+                    : 'border-transparent text-textSecondary hover:text-textPrimary hover:bg-bgElevated hover:border-borderCustom'
                 )
               }
             >
@@ -74,29 +79,32 @@ function Header({ cwd }: { cwd: string }) {
 
 function Footer() {
   return (
-    <footer className="border-t border-bg-line bg-bg-soft/50">
-      <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-5 text-xs text-fg-muted md:flex-row md:items-center md:justify-between">
-        <div className="font-mono space-y-0.5">
-          <div>
+    <footer className="border-t border-borderCustom bg-bgSurface/50 backdrop-blur z-10 mt-auto">
+      <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-5 text-xs text-textSecondary md:flex-row md:items-center md:justify-between">
+        <div className="font-mono space-y-1">
+          <div className="flex items-center gap-1.5">
             <span className="text-prompt-user">pwnvader㉿kali</span>
-            <span className="text-fg-dim">:</span>
+            <span className="text-textMuted">:</span>
             <span className="text-prompt-path">~</span>
-            <span className="text-accent-red">$</span>{' '}
-            <span>cat /etc/credits.txt</span>
+            <span className="text-accent font-bold">$</span>{' '}
+            <span className="text-textPrimary">cat /etc/credits.txt</span>
           </div>
-          <div className="pl-2">
-            <span className="text-accent-green">[+]</span>{' '}
-            <span>compilado con</span>{' '}
-            <span title="café">☕</span>
-            <span className="text-fg-dim mx-1">×</span>
-            <span title="insomnio">🌙</span>
-            <span className="text-fg-dim mx-1">×</span>
-            <span title="curiosidad">🧠</span>{' '}
-            <span>por</span>{' '}
-            <span className="text-accent-green font-semibold">pwnVader</span>{' '}
-            <span className="text-fg-dim">·</span>{' '}
-            <span className="text-accent-yellow">hack the planet</span>{' '}
-            <span title="planeta">🌍</span>
+          <div className="pl-3 border-l border-borderCustom/60 ml-1.5 space-y-0.5">
+            <div className="flex items-center gap-1.5">
+              <span className="text-success font-semibold">[+]</span>{' '}
+              <span>compilado con</span>{' '}
+              <span title="café" className="grayscale-0">☕</span>
+              <span className="text-textMuted mx-0.5">×</span>
+              <span title="insomnio">🌙</span>
+              <span className="text-textMuted mx-0.5">×</span>
+              <span title="curiosidad">🧠</span>{' '}
+              <span>por</span>{' '}
+              <span className="text-accent font-semibold">pwnVader</span>
+            </div>
+            <div>
+              <span className="text-textMuted">status:</span>{' '}
+              <span className="text-success font-semibold">HACK THE PLANET 🌍</span>
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-4 font-mono">
@@ -104,17 +112,17 @@ function Footer() {
             href="https://pwnvader.com"
             target="_blank"
             rel="noreferrer noopener"
-            className="hover:text-accent-blue transition"
+            className="hover:text-accent transition duration-200 flex items-center gap-1"
           >
-            pwnvader.com
+            <span>pwnvader.com</span>
           </a>
           <a
             href="https://github.com/pwnVader"
             target="_blank"
             rel="noreferrer noopener"
-            className="hover:text-accent-blue transition"
+            className="hover:text-accent transition duration-200 flex items-center gap-1"
           >
-            github
+            <span>github</span>
           </a>
         </div>
       </div>

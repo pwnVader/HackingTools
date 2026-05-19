@@ -41,15 +41,20 @@ export default function CopyButton({ value, label = 'copy', className, size = 's
       type="button"
       onClick={onClick}
       className={cn(
-        'inline-flex items-center gap-1.5 rounded border border-bg-line bg-bg-soft font-mono text-fg-muted transition',
-        'hover:border-accent-green/50 hover:text-accent-green focus:outline-none focus:ring-1 focus:ring-accent-green/50',
-        size === 'sm' ? 'px-2 py-1 text-xs' : 'px-3 py-1.5 text-sm',
-        copied && 'border-accent-green/70 text-accent-green',
+        'inline-flex items-center gap-1.5 rounded-md border font-mono transition-all duration-200 active:scale-95 focus:outline-none',
+        copied
+          ? 'border-accent-green bg-accent-green/10 text-accent-green shadow-glowGreen'
+          : 'border-bg-line bg-bg-soft text-fg-muted hover:border-accent/60 hover:text-accent hover:shadow-glow focus:ring-2 focus:ring-accent/30',
+        size === 'sm' ? 'px-2.5 py-1 text-xs' : 'px-3.5 py-1.5 text-sm',
         className
       )}
       aria-label={copied ? 'copiado' : `copiar ${label}`}
     >
-      {copied ? '✓ copiado' : `▣ ${label}`}
+      <span className={cn('transition-transform duration-200', copied ? 'scale-110' : 'scale-100')}>
+        {copied ? '✓' : '▣'}
+      </span>
+      <span>{copied ? 'copiado' : label}</span>
     </button>
   );
 }
+

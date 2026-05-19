@@ -37,12 +37,12 @@ export default function Subnet() {
       <header className="space-y-4">
         <Prompt cwd="~/networking" command={`./subnet-calc ${state.ip}/${state.cidr || '?'}`} />
         <div className="flex items-start gap-4">
-          <div className="hidden sm:flex h-12 w-12 items-center justify-center rounded-lg border border-accent-green/40 bg-accent-green/5">
-            <Calculator className="h-6 w-6 text-accent-green" />
+          <div className="hidden sm:flex h-12 w-12 items-center justify-center rounded-lg border border-accent/40 bg-accent/5 shadow-glow">
+            <Calculator className="h-6 w-6 text-accent" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-fg">Subnet Calculator</h1>
-            <p className="mt-2 max-w-2xl text-sm text-fg-muted leading-relaxed">
+            <h1 className="text-3xl font-bold text-text-primary font-mono">Subnet Calculator</h1>
+            <p className="mt-2 max-w-2xl text-sm text-text-secondary leading-relaxed font-mono">
               Introduce una dirección IPv4 y un CIDR. Todo se calcula en tu navegador en tiempo real.
             </p>
           </div>
@@ -69,16 +69,16 @@ export default function Subnet() {
         />
       </section>
 
-      <section className="flex flex-wrap gap-2">
+      <section className="flex flex-wrap gap-1.5">
         {[8, 16, 24, 25, 26, 27, 28, 29, 30, 31, 32].map((c) => (
           <button
             key={c}
             onClick={() => setState((s) => ({ ...s, cidr: String(c) }))}
             className={cn(
-              'rounded border px-2.5 py-1 font-mono text-xs transition',
+              'rounded-md border px-3 py-1.5 font-mono text-xs font-semibold transition-all duration-200 active:scale-95',
               state.cidr === String(c)
-                ? 'border-accent-green/60 bg-accent-green/10 text-accent-green'
-                : 'border-bg-line text-fg-muted hover:border-accent-blue/40 hover:text-accent-blue'
+                ? 'border-accent/60 bg-accent/15 text-accent shadow-glow'
+                : 'border-bg-line text-text-secondary hover:border-accent/40 hover:text-accent'
             )}
           >
             /{c}
@@ -87,16 +87,16 @@ export default function Subnet() {
       </section>
 
       {result.error && (
-        <Terminal title="stderr">
-          <p className="text-accent-red text-sm">{result.error}</p>
+        <Terminal title="stderr" className="border-accent-red/30">
+          <p className="text-accent-red text-sm font-mono font-medium">{result.error}</p>
         </Terminal>
       )}
 
       {result.data && (
         <>
-          <Terminal title="output" className="">
-            <div className="flex items-start justify-between gap-3 flex-wrap">
-              <p className="text-accent-green text-sm font-medium">{summary}</p>
+          <Terminal title="output">
+            <div className="flex items-center justify-between gap-3 flex-wrap p-1 font-mono">
+              <p className="text-accent-green text-sm font-bold">{summary}</p>
               <CopyButton value={summary} label="resumen" />
             </div>
           </Terminal>
@@ -104,11 +104,12 @@ export default function Subnet() {
           <Grid info={result.data} />
 
           {result.data.notes.length > 0 && (
-            <Terminal title="notes">
-              <ul className="space-y-1 text-sm text-fg-muted">
+            <Terminal title="notes" className="border-accent/30">
+              <ul className="space-y-2 text-sm text-text-secondary font-mono p-1">
                 {result.data.notes.map((n, i) => (
-                  <li key={i}>
-                    <span className="text-accent-yellow">!</span> {n}
+                  <li key={i} className="flex items-start gap-2">
+                    <span className="text-accent font-bold">!</span>
+                    <span>{n}</span>
                   </li>
                 ))}
               </ul>
@@ -123,10 +124,10 @@ export default function Subnet() {
 function Row({ label, value, mono = true }: { label: string; value: string | number; mono?: boolean }) {
   const v = String(value);
   return (
-    <div className="grid grid-cols-[140px_1fr_auto] items-center gap-3 border-b border-bg-line/60 px-3 py-2 last:border-0">
-      <span className="text-xs uppercase tracking-wider text-fg-muted">{label}</span>
-      <span className={cn('text-sm text-fg break-all', mono && 'font-mono')}>{v}</span>
-      <CopyButton value={v} label="" />
+    <div className="grid grid-cols-[140px_1fr_auto] items-center gap-3 border-b border-bg-line/40 px-4 py-3 last:border-0 hover:bg-bg-soft/20 transition-colors duration-200">
+      <span className="text-xs uppercase tracking-wider text-text-secondary font-bold font-mono">{label}</span>
+      <span className={cn('text-sm text-text-primary break-all', mono && 'font-mono')}>{v}</span>
+      <CopyButton value={v} label="" size="sm" />
     </div>
   );
 }
@@ -140,7 +141,7 @@ function Grid({ info }: { info: SubnetInfo }) {
         <Row label="Máscara" value={info.mask} />
         <Row label="Wildcard" value={info.wildcard} />
         <Row label="Clase" value={info.ipClass} />
-        <Row label="Privada (RFC1918)" value={info.isPrivate ? 'sí' : 'no'} />
+        <Row label="Privada" value={info.isPrivate ? 'sí' : 'no'} />
       </Terminal>
 
       <Terminal title="rango" bodyClassName="!p-0">
@@ -160,3 +161,4 @@ function Grid({ info }: { info: SubnetInfo }) {
     </div>
   );
 }
+

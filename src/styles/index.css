@@ -1,3 +1,7 @@
+@import "@fontsource/jetbrains-mono/index.css";
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/700.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -5,51 +9,100 @@
 @layer base {
   html {
     color-scheme: dark;
+    background-color: #11111b;
   }
 
   body {
+    background-color: #11111b;
     background-image:
-      radial-gradient(circle at 0% 0%, rgba(43, 213, 124, 0.06), transparent 40%),
-      radial-gradient(circle at 100% 0%, rgba(58, 166, 255, 0.05), transparent 45%);
+      radial-gradient(circle at 10% 10%, rgba(203, 166, 247, 0.035), transparent 45%),
+      radial-gradient(circle at 90% 80%, rgba(116, 199, 236, 0.025), transparent 50%),
+      radial-gradient(circle at 50% 50%, rgba(166, 227, 161, 0.015), transparent 60%);
     background-attachment: fixed;
     min-height: 100vh;
+    color: #cdd6f4;
+  }
+
+  /* Líneas de Escaneo CRT Retro */
+  body::before {
+    content: " ";
+    display: block;
+    position: fixed;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background: repeating-linear-gradient(
+      rgba(18, 16, 16, 0) 0px,
+      rgba(18, 16, 16, 0) 2px,
+      rgba(0, 0, 0, 0.04) 2px,
+      rgba(0, 0, 0, 0.04) 4px
+    );
+    z-index: 99999;
+    pointer-events: none;
+  }
+
+  /* Haz de Radar / Línea de Barrido */
+  body::after {
+    content: " ";
+    display: block;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: rgba(203, 166, 247, 0.06);
+    box-shadow: 0 0 10px rgba(203, 166, 247, 0.2);
+    z-index: 99998;
+    pointer-events: none;
+    animation: scan-beam 8s linear infinite;
+  }
+
+  @keyframes scan-beam {
+    0% { transform: translateY(-10px); }
+    100% { transform: translateY(110vh); }
   }
 
   ::selection {
-    background: rgba(43, 213, 124, 0.35);
+    background: rgba(203, 166, 247, 0.25);
     color: #ffffff;
   }
 
-  /* Scrollbar discreta */
+  /* Scrollbar táctica ultra-premium (Catppuccin Mocha) */
   ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
   }
   ::-webkit-scrollbar-track {
-    background: #0a0e14;
+    background: #11111b; /* Crust */
   }
   ::-webkit-scrollbar-thumb {
-    background: #1c2530;
-    border-radius: 6px;
+    background: #313244; /* Surface0 */
+    border-radius: 4px;
+    border: 2px solid #11111b;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #2a3744;
+    background: #45475a; /* Surface1 */
   }
 }
 
 @layer components {
-  /* Cursor parpadeante para prompt */
+  /* Cursor parpadeante para prompt táctico */
   .cursor-blink::after {
     content: '▊';
     display: inline-block;
-    margin-left: 2px;
-    color: #2bd57c;
-    animation: blink 1.1s steps(2, start) infinite;
+    margin-left: 4px;
+    color: #cba6f7; /* Mauve */
+    animation: blink 1.2s steps(2, start) infinite;
   }
 
   @keyframes blink {
     to {
       visibility: hidden;
     }
+  }
+
+  /* Clases obsoletas pero reservadas para compatibilidad estructural */
+  .scanlines {
+    display: none;
+  }
+
+  .scan-beam {
+    display: none;
   }
 }
