@@ -3,6 +3,9 @@ import {
   ShieldAlert,
   Play,
   FileText,
+  FileCode2,
+  FileJson,
+  Printer,
   AlertTriangle,
   CheckCircle2,
   Info,
@@ -17,7 +20,22 @@ import Prompt from '../../components/Prompt';
 import Terminal from '../../components/Terminal';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
+import CopyButton from '../../components/CopyButton';
 import { auditJoomla, type AuditResult, type Finding, type Severity } from '../../lib/joomlaAudit';
+import {
+  toMarkdown,
+  toHtml,
+  downloadFile,
+  printHtmlReport,
+  sanitizeFilename,
+} from '../../lib/joomlaExport';
+import {
+  endpointUrl as cmsEndpointUrl,
+  getSecRefs,
+  cveSearchUrl,
+  isVersionRelated,
+  type SecRefs,
+} from '../../lib/cmsRefs';
 import { WORKER_URL, HAS_WORKER } from '../../lib/config';
 import { cn } from '../../lib/cn';
 import { pushAudit, clearAuditHistory, useAuditHistory, relativeTime, type AuditEntry } from '../../lib/history';
@@ -88,32 +106,9 @@ export default function Joomla() {
     }
   };
 
-  const exportMarkdown = () => {
-    if (!result) return;
-    let md = `# Reporte de Auditoría Joomla - ${result.target}\n\n`;
-    md += `- **Fecha:** ${new Date(result.startedAt).toLocaleString()}\n`;
-    md += `- **Score de Seguridad:** ${result.score}/100 (${result.riskLabel})\n`;
-    md += `- **Versión Joomla:** ${result.metadata.joomlaVersion || 'No detectada'}\n`;
-    md += `- **HTTPS habilitado:** ${result.metadata.isHttps ? 'Sí' : 'No'}\n\n`;
-    md += `## Hallazgos (${result.findings.length})\n\n`;
-    result.findings.forEach((f, i) => {
-      md += `### ${i + 1}. [${f.severity.toUpperCase()}] ${f.title}\n`;
-      md += `- **Categoría:** ${f.category}\n`;
-      md += `- **Detalle:** ${f.detail}\n`;
-      md += `- **Recomendación:** ${f.recommendation}\n`;
-      if (f.evidence) md += `- **Evidencia:** \`${f.evidence}\`\n`;
-      md += `\n`;
-    });
-
-    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `joomla_audit_${result.target.replace(/https?:\/\//, '').replace(/[^a-zA-Z0-9]/g, '_')}.md`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  // exportMarkdown viejo eliminado — el módulo joomlaExport ahora maneja
+  // los cuatro formatos (Markdown, HTML, PDF/print, JSON) con el mismo
+  // diseño profesional (Graphite & Ember + refs CWE/OWASP/CVE).
 
   return (
     <div className="space-y-10">
@@ -263,15 +258,7 @@ export default function Joomla() {
           </Terminal>
 
           {/* Export and action toolbar */}
-          <div className="flex flex-wrap items-center gap-3">
-            <Button variant="outline" onClick={exportMarkdown} className="flex items-center gap-2">
-              <FileText className="h-4 w-4 text-accent" />
-              <span>Exportar Reporte (.MD)</span>
-            </Button>
-            <div className="ml-auto text-xs text-textMuted font-mono">
-              Finalizado a las {new Date(result.finishedAt).toLocaleTimeString()}
-            </div>
-          </div>
+          <ExportToolbar result={result} />
 
           {/* Findings List */}
           <section className="space-y-4">
@@ -301,7 +288,13 @@ export default function Joomla() {
                 {result.findings.map((f) => {
                   const style = SEV_STYLE[f.severity];
                   return (
-                    <FindingItem key={f.id} finding={f} style={style} target={result.target} />
+                    <FindingItem
+                      key={f.id}
+                      finding={f}
+                      style={style}
+                      target={result.target}
+                      joomlaVersion={result.metadata.joomlaVersion}
+                    />
                   );
                 })}
               </div>
@@ -403,11 +396,30 @@ function MetaRow({ k, v, accent = false }: { k: string; v: string; accent?: bool
   );
 }
 
-function FindingItem({ finding, style, target }: { finding: Finding; style: any; target: string }) {
+function FindingItem({
+  finding,
+  style,
+  target,
+  joomlaVersion,
+}: {
+  finding: Finding;
+  style: any;
+  target: string;
+  joomlaVersion: string | null;
+}) {
   const [open, setOpen] = useState(false);
-  const epUrl = finding.id.startsWith('endpoint:') ? target + finding.id.slice('endpoint:'.length) : null;
+  const epUrl = cmsEndpointUrl(finding, target, 'joomla');
+  const refs: SecRefs | null = getSecRefs(finding, 'joomla');
+  const showCveLink = !!joomlaVersion && isVersionRelated(finding);
+  const hasRefs = !!refs?.cwe || !!refs?.owasp || showCveLink;
+
   return (
-    <div className={cn('rounded-xl border bg-bgSurface/50 overflow-hidden transition-all duration-300', open ? 'border-borderCustom' : style.border)}>
+    <div
+      className={cn(
+        'rounded-xl border bg-bgSurface/50 overflow-hidden transition-all duration-300',
+        open ? 'border-borderCustom' : style.border
+      )}
+    >
       <div
         role="button"
         tabIndex={0}
@@ -421,15 +433,54 @@ function FindingItem({ finding, style, target }: { finding: Finding; style: any;
         className="w-full flex items-center justify-between p-4 font-mono text-left select-none focus:outline-none cursor-pointer hover:bg-bgElevated/35 transition-colors"
       >
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 min-w-0 flex-1">
-          <span className={cn('text-[10px] px-2 py-0.5 rounded font-extrabold border flex-shrink-0', style.text, style.border, style.bg)}>
+          <span
+            className={cn(
+              'text-[10px] px-2 py-0.5 rounded font-extrabold border flex-shrink-0',
+              style.text,
+              style.border,
+              style.bg
+            )}
+          >
             {style.label}
           </span>
           <span className="text-sm font-semibold text-textPrimary truncate">{finding.title}</span>
           {epUrl && <QuickActions url={epUrl} />}
         </div>
-        <ChevronDown className={cn('h-4 w-4 text-textMuted flex-shrink-0 transition duration-300', open && 'rotate-180')} />
+        <ChevronDown
+          className={cn(
+            'h-4 w-4 text-textMuted flex-shrink-0 transition duration-300',
+            open && 'rotate-180'
+          )}
+        />
       </div>
-      
+
+      {hasRefs && (
+        <div className="flex flex-wrap items-center gap-1.5 px-4 pb-3 -mt-1">
+          {refs?.cwe && (
+            <RefBadge
+              href={refs.cwe.url}
+              label={`CWE-${refs.cwe.id}`}
+              title={`CWE-${refs.cwe.id}: ${refs.cwe.title}`}
+            />
+          )}
+          {refs?.owasp && (
+            <RefBadge
+              href={refs.owasp.url}
+              label={refs.owasp.id}
+              title={`OWASP Top 10 — ${refs.owasp.title}`}
+            />
+          )}
+          {showCveLink && joomlaVersion && (
+            <RefBadge
+              href={cveSearchUrl('joomla', joomlaVersion)}
+              label={`Buscar CVEs · Joomla ${joomlaVersion}`}
+              title={`Búsqueda en NVD para Joomla ${joomlaVersion}`}
+              accent
+            />
+          )}
+        </div>
+      )}
+
       {open && (
         <div className="p-4 border-t border-borderCustom/40 bg-bgBase/40 font-mono text-xs space-y-3 leading-relaxed">
           <div className="space-y-1">
@@ -439,7 +490,9 @@ function FindingItem({ finding, style, target }: { finding: Finding; style: any;
 
           {epUrl && (
             <div className="space-y-1">
-              <span className="text-textMuted font-bold uppercase tracking-wider text-[10px] block">Endpoint:</span>
+              <span className="text-textMuted font-bold uppercase tracking-wider text-[10px] block">
+                Endpoint:
+              </span>
               <a
                 href={epUrl}
                 target="_blank"
@@ -455,14 +508,18 @@ function FindingItem({ finding, style, target }: { finding: Finding; style: any;
 
           {finding.evidence && (
             <div className="space-y-1">
-              <div className="text-textMuted font-bold uppercase tracking-wider text-[10px]">Evidencia:</div>
+              <div className="text-textMuted font-bold uppercase tracking-wider text-[10px]">
+                Evidencia:
+              </div>
               <pre className="p-2 rounded bg-bgSurface border border-borderCustom/50 text-accent font-semibold overflow-x-auto">
                 {finding.evidence}
               </pre>
             </div>
           )}
           <div className="space-y-1 pt-2 border-t border-borderCustom/20">
-            <div className="text-accent font-bold uppercase tracking-wider text-[10px]">Recomendación de Mitigación:</div>
+            <div className="text-accent font-bold uppercase tracking-wider text-[10px]">
+              Recomendación de Mitigación:
+            </div>
             <p className="text-textPrimary">{finding.recommendation}</p>
           </div>
         </div>
@@ -470,6 +527,112 @@ function FindingItem({ finding, style, target }: { finding: Finding; style: any;
     </div>
   );
 }
+
+function RefBadge({
+  href,
+  label,
+  title,
+  accent,
+}: {
+  href: string;
+  label: string;
+  title: string;
+  accent?: boolean;
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={(e) => e.stopPropagation()}
+      title={title}
+      className={cn(
+        'inline-flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-mono font-medium uppercase tracking-wider transition',
+        accent
+          ? 'border-accent/40 bg-accent/5 text-accent hover:bg-accent/10 hover:border-accent/60'
+          : 'border-borderCustom bg-bgSurface text-textMuted hover:text-textPrimary hover:border-textMuted/60'
+      )}
+    >
+      {label}
+      <ExternalLink className="h-2.5 w-2.5 opacity-70" />
+    </a>
+  );
+}
+
+function ExportToolbar({ result }: { result: AuditResult }) {
+  const fname = sanitizeFilename(result.target) + '_' + Date.now();
+  const html = toHtml(result);
+  const md = toMarkdown(result);
+  const jsonStr = JSON.stringify(result, null, 2);
+
+  return (
+    <div className="rounded-xl border border-borderCustom bg-bgSurface/50 p-4 space-y-3">
+      <div className="text-[11px] uppercase tracking-wider text-textMuted font-mono">
+        Exportar reporte
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={() => downloadFile(html, `joomla_${fname}.html`, 'text/html;charset=utf-8')}
+          className={EXPORT_PRIMARY}
+        >
+          <FileCode2 className="h-4 w-4" />
+          HTML
+        </button>
+        <button type="button" onClick={() => printHtmlReport(html)} className={EXPORT_PRIMARY}>
+          <Printer className="h-4 w-4" />
+          PDF
+        </button>
+
+        <span className="hidden sm:block h-7 w-px bg-borderCustom mx-1" aria-hidden />
+
+        <button
+          type="button"
+          onClick={() => downloadFile(md, `joomla_${fname}.md`, 'text/markdown;charset=utf-8')}
+          className={EXPORT_SECONDARY}
+        >
+          <FileText className="h-4 w-4" />
+          Markdown
+        </button>
+        <button
+          type="button"
+          onClick={() =>
+            downloadFile(jsonStr, `joomla_${fname}.json`, 'application/json;charset=utf-8')
+          }
+          className={EXPORT_SECONDARY}
+        >
+          <FileJson className="h-4 w-4" />
+          JSON
+        </button>
+        <CopyButton value={jsonStr} label="copiar JSON" />
+
+        <div className="ml-auto text-[11px] text-textMuted font-mono">
+          Finalizado a las {new Date(result.finishedAt).toLocaleTimeString()}
+        </div>
+      </div>
+      <p className="text-[11px] text-fg-dim font-mono">
+        <span className="text-accent font-semibold">tip:</span> el botón PDF abre la versión HTML en una
+        ventana nueva y dispara el diálogo de imprimir. Elige "Guardar como PDF".
+      </p>
+    </div>
+  );
+}
+
+const EXPORT_PRIMARY = cn(
+  'inline-flex items-center justify-center gap-2 rounded-md font-mono text-sm font-medium',
+  'px-4 py-2.5 min-w-[110px]',
+  'bg-bgElevated text-textPrimary border border-borderCustom',
+  'hover:bg-accent/10 hover:border-accent/50 hover:text-accent',
+  'transition focus:outline-none focus:ring-2 focus:ring-accent/30'
+);
+
+const EXPORT_SECONDARY = cn(
+  'inline-flex items-center justify-center gap-2 rounded-md font-mono text-sm font-medium',
+  'px-4 py-2.5 min-w-[110px]',
+  'bg-transparent text-textMuted border border-borderCustom',
+  'hover:text-textPrimary hover:border-textMuted/60',
+  'transition focus:outline-none focus:ring-2 focus:ring-accent/30'
+);
 
 function QuickActions({ url }: { url: string }) {
   const [copied, setCopied] = useState(false);

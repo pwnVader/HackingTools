@@ -1,12 +1,10 @@
 /**
- * Wrapper específico de WordPress sobre el generador genérico cmsExport.
- *
- * Mantiene la firma `toMarkdown(r)` / `toHtml(r)` por compatibilidad
- * con la UI ya integrada; toda la lógica de render vive en cmsExport.ts
- * y las refs específicas de WP en cmsRefs.ts.
+ * Wrapper específico de Drupal sobre el generador genérico cmsExport.
+ * Mismo reporte profesional que WordPress, parametrizado con la
+ * versión, refs y resolución de endpoint URL propias de Drupal.
  */
 
-import type { AuditResult } from './wpAudit';
+import type { AuditResult } from './drupalAudit';
 import {
   toMarkdown as toMarkdownGeneric,
   toHtml as toHtmlGeneric,
@@ -18,14 +16,14 @@ import { endpointUrl, getSecRefs, cveSearchUrl, isVersionRelated } from './cmsRe
 
 function profile(r: AuditResult) {
   return {
-    cms: 'wordpress' as const,
-    version: r.metadata.wpVersion,
+    cms: 'drupal' as const,
+    version: r.metadata.drupalVersion,
     poweredBy: r.metadata.poweredBy,
     isHttps: r.metadata.isHttps,
     endpointUrl: (f: { id: string; category: string }, t: string) =>
-      endpointUrl(f, t, 'wordpress'),
-    refs: (f: { id: string; category: string }) => getSecRefs(f, 'wordpress'),
-    cveSearchUrl: (v: string) => cveSearchUrl('wordpress', v),
+      endpointUrl(f, t, 'drupal'),
+    refs: (f: { id: string; category: string }) => getSecRefs(f, 'drupal'),
+    cveSearchUrl: (v: string) => cveSearchUrl('drupal', v),
     isVersionRelated,
   };
 }
