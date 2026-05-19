@@ -1,0 +1,10 @@
+name = "pwnvader-cors-proxy"
+main = "src/index.ts"
+compatibility_date = "2025-05-01"
+
+# Restringe el Worker para uso desde hacking.pwnvader.com.
+# Cambia el valor si pruebas localmente o desde otro dominio.
+[vars]
+ALLOWED_ORIGINS = "https://hacking.pwnvader.com,http://localhost:5173,http://127.0.0.1:5173"
+MAX_BODY_BYTES = "524288"
+TIMEOUT_MS = "10000"
