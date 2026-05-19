@@ -2,6 +2,39 @@
 <html lang="es" class="dark">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      // Global error tracker to diagnose blank pages
+      window.addEventListener('error', function(e) {
+        var div = document.createElement('div');
+        div.style.position = 'fixed';
+        div.style.inset = '0';
+        div.style.background = '#0a0e14';
+        div.style.color = '#ff5566';
+        div.style.padding = '30px';
+        div.style.fontFamily = 'monospace';
+        div.style.zIndex = '999999';
+        div.style.overflow = 'auto';
+        div.innerHTML = '<h1 style="font-size:20px;margin-bottom:15px;color:#ff5566">[!] Runtime Error</h1>' +
+          '<pre style="background:#10151c;padding:15px;border-radius:4px;border:1px solid #1c2530;color:#d7e0ea">' +
+          e.message + '\n' + e.filename + ':' + e.lineno + '\n\nStack:\n' + (e.error ? e.error.stack : '') + '</pre>';
+        document.body.appendChild(div);
+      });
+      window.addEventListener('unhandledrejection', function(e) {
+        var div = document.createElement('div');
+        div.style.position = 'fixed';
+        div.style.inset = '0';
+        div.style.background = '#0a0e14';
+        div.style.color = '#ff5566';
+        div.style.padding = '30px';
+        div.style.fontFamily = 'monospace';
+        div.style.zIndex = '999999';
+        div.style.overflow = 'auto';
+        div.innerHTML = '<h1 style="font-size:20px;margin-bottom:15px;color:#ff5566">[!] Unhandled Promise Rejection</h1>' +
+          '<pre style="background:#10151c;padding:15px;border-radius:4px;border:1px solid #1c2530;color:#d7e0ea">' +
+          e.reason + '</pre>';
+        document.body.appendChild(div);
+      });
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0a0e14" />
     <meta name="description" content="Herramientas de ciberseguridad serverless — networking, auditoría de CMS y encoders. Por pwnVader." />
