@@ -4,9 +4,6 @@ import {
   Sparkles,
   ExternalLink,
   Lock,
-  KeyRound,
-  ShieldOff,
-  History as HistoryIcon,
 } from 'lucide-react';
 import Prompt from '../components/Prompt';
 import ToolCard from '../components/ToolCard';
@@ -37,6 +34,25 @@ export default function Home() {
       <section className="space-y-6">
         <div>
           <Prompt cwd="~" command="ls /opt/tools" />
+          <pre className="text-orange-500/90 font-mono text-xs leading-none my-4">
+{`  _,met$$$$$gg.
+,g$$$$$$$$$$$$$$$P.
+,g$$P"  """Y$$.".
+,$$P'      \`$$$.
+',$$P       ,ggs.     \`$$b:
+\`d$$'     ,$P"'    . $$$
+$$P      d$'     , $$P
+$$:      $$.   - ,d$$'
+$$;      Y$b._ _,d$P'
+Y$$.    \`."Y$$$$P"'
+\`$$b      "-.__
+ \`Y$$b
+  \`Y$$.
+    \`$$b.
+      \`Y$$b.
+         \`"Y$b._
+             \`""""`}
+          </pre>
           <h2 className="mt-3 text-xl font-bold text-text-primary font-mono">Herramientas</h2>
         </div>
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -71,48 +87,11 @@ export default function Home() {
             icon={<ShieldAlert className="h-5 w-5" />}
           />
           <ToolCard
-            to="/web"
-            command="cd web/"
-            title="Web"
-            description={
-              <span>
-                JWT Attacker: editor visual de tokens con ataques de un clic (alg:none, privilege escalation).{' '}
-                <span className="block mt-1.5 text-xs text-zinc-400/80">
-                  + CSP Bypass Analyzer & CORS PoC Generator
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-orange-400 border border-orange-500/30 bg-orange-500/10 px-1.5 py-0.5 rounded ml-2 inline-block">Coming Soon</span>
-                </span>
-              </span>
-            }
-            icon={<ShieldOff className="h-5 w-5" />}
-          />
-          <ToolCard
-            to="/cracking"
-            command="cd cracking/"
-            title="Cracking"
-            description={
-              <span>
-                Hashcat Mask Builder: catálogo de hash modes, constructor visual de máscaras (?u?l?d?s + literales).{' '}
-                <span className="block mt-1.5 text-xs text-zinc-400/80">
-                  + Offline Hash Identifier & .rule Builder
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-orange-400 border border-orange-500/30 bg-orange-500/10 px-1.5 py-0.5 rounded ml-2 inline-block">Coming Soon</span>
-                </span>
-              </span>
-            }
-            icon={<KeyRound className="h-5 w-5" />}
-          />
-          <ToolCard
             to="/encoders"
             command="cd encoders/"
             title="Encoders"
             description="Recetas tipo CyberChef (base64, URL, hex, hash, JWT, rot) y una feature distintiva: ocultar mensajes invisibles dentro de un emoji."
             icon={<Sparkles className="h-5 w-5" />}
-          />
-          <ToolCard
-            to="/history"
-            command="cd history/"
-            title="Historial Global"
-            description="Feed unificado de toda la actividad guardada en localStorage + Killswitch para purgar el estado completo del toolkit en un clic."
-            icon={<HistoryIcon className="h-5 w-5" />}
           />
         </div>
       </section>
