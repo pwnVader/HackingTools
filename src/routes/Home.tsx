@@ -34,25 +34,6 @@ export default function Home() {
       <section className="space-y-6">
         <div>
           <Prompt cwd="~" command="ls /opt/tools" />
-          <pre className="text-orange-500/90 font-mono text-xs leading-none my-4">
-{`  _,met$$$$$gg.
-,g$$$$$$$$$$$$$$$P.
-,g$$P"  """Y$$.".
-,$$P'      \`$$$.
-',$$P       ,ggs.     \`$$b:
-\`d$$'     ,$P"'    . $$$
-$$P      d$'     , $$P
-$$:      $$.   - ,d$$'
-$$;      Y$b._ _,d$P'
-Y$$.    \`."Y$$$$P"'
-\`$$b      "-.__
- \`Y$$b
-  \`Y$$.
-    \`$$b.
-      \`Y$$b.
-         \`"Y$b._
-             \`""""`}
-          </pre>
           <h2 className="mt-3 text-xl font-bold text-text-primary font-mono">Herramientas</h2>
         </div>
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -93,6 +74,74 @@ Y$$.    \`."Y$$$$P"'
             description="Recetas tipo CyberChef (base64, URL, hex, hash, JWT, rot) y una feature distintiva: ocultar mensajes invisibles dentro de un emoji."
             icon={<Sparkles className="h-5 w-5" />}
           />
+        </div>
+      </section>
+
+      {/* Fastfetch Section */}
+      <section className="space-y-4">
+        <Prompt command="fastfetch" />
+        <div className="flex flex-col md:flex-row gap-8 items-start my-6 p-4 bg-[#0f111a]/50 rounded-lg border border-white/5 font-mono">
+          {/* Columna Izquierda (Logo) */}
+          <pre className="text-orange-500 font-mono text-[10px] md:text-xs leading-none select-none">
+{`..............
+            ..,;:ccc,.
+          ......''';lxO.
+.....''''..........,:ld;
+           .';;;:::;,,.x,
+      ..'''.            0Xxoc:,.  ...
+  ....                ,ONkc;,;cokOdc',.
+ .                  .OMo           ':ddo.
+                    dM[             .oOc
+                    0M.            .;ld.
+                    ;@M:         .;ldo.
+                     :MMo      .;ldo.
+                      ;MMo   .;ldo.
+                       :MMo.;ldo.
+                        :MMdxo.
+                         'XMx.
+                           .`}
+          </pre>
+
+          {/* Columna Derecha (Info de Usuario) */}
+          <div className="flex-1 min-w-0">
+            <h3 className="text-orange-400 font-bold text-lg">root@pwnvader</h3>
+            <div className="text-zinc-500 my-1">-------------------------</div>
+            
+            <div className="grid grid-cols-[100px_1fr] gap-y-1 text-sm text-zinc-300 mt-2 font-mono">
+              <span className="text-orange-400 font-semibold">LinkedIn:</span>
+              <span>jesuspromero · 2.3K</span>
+              
+              <span className="text-orange-400 font-semibold">TikTok:</span>
+              <span>@pwnvader · 28.3K</span>
+              
+              <span className="text-orange-400 font-semibold">GitHub:</span>
+              <a href="https://github.com/pwnVader" target="_blank" rel="noreferrer noopener" className="hover:text-orange-400 hover:underline">pwnvader</a>
+              
+              <span className="text-orange-400 font-semibold">Medium:</span>
+              <span>@pwnvader</span>
+              
+              <span className="text-orange-400 font-semibold">TryHackMe:</span>
+              <span>pwnVader · Top 1%</span>
+              
+              <span className="text-orange-400 font-semibold">HackTheBox:</span>
+              <span>pwnVader</span>
+              
+              <span className="text-orange-400 font-semibold">Email:</span>
+              <a href="mailto:contacto@pwnvader.com" className="hover:text-orange-400 hover:underline">contacto@pwnvader.com</a>
+            </div>
+
+            {/* Simulating Terminal Color Palette with Graphite & Ember accents */}
+            <div className="flex flex-wrap gap-2 mt-4 select-none">
+              <div className="h-4 w-4 rounded bg-[#11111b] border border-white/10" />
+              <div className="h-4 w-4 rounded bg-[#313244]" />
+              <div className="h-4 w-4 rounded bg-orange-500" />
+              <div className="h-4 w-4 rounded bg-amber-500" />
+              <div className="h-4 w-4 rounded bg-red-500" />
+              <div className="h-4 w-4 rounded bg-emerald-500" />
+              <div className="h-4 w-4 rounded bg-sky-500" />
+              <div className="h-4 w-4 rounded bg-zinc-300" />
+            </div>
+          </div>
         </div>
       </section>
 
