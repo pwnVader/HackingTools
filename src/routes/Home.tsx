@@ -8,7 +8,8 @@ import {
 import Prompt from '../components/Prompt';
 import ToolCard from '../components/ToolCard';
 import Terminal from '../components/Terminal';
-import { GithubIcon, LinkedinIcon, KaliIcon } from '../components/CustomIcons';
+import { GithubIcon, KaliIcon } from '../components/CustomIcons';
+import { cn } from '../lib/cn';
 
 export default function Home() {
   return (
@@ -112,8 +113,32 @@ export default function Home() {
               root@pwnvader
             </p>
             <p className="text-text-muted/60 select-none leading-none">--------------------------------</p>
-            
+
             <div className="space-y-0.5 pt-1 text-xs sm:text-sm">
+              <a
+                href="https://pwnvader.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-baseline gap-1 sm:gap-2 rounded px-1.5 -mx-1.5 py-0.5 transition-colors hover:bg-bg-elevated/40"
+              >
+                <span className="font-bold shrink-0 text-orange-400" style={{ minWidth: '12ch' }}>Portfolio:</span>
+                <span className="text-text-secondary group-hover:text-text-primary transition-colors truncate">
+                  pwnvader.com
+                </span>
+              </a>
+
+              <a
+                href="https://docs.pwnvader.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-baseline gap-1 sm:gap-2 rounded px-1.5 -mx-1.5 py-0.5 transition-colors hover:bg-bg-elevated/40"
+              >
+                <span className="font-bold shrink-0 text-orange-400" style={{ minWidth: '12ch' }}>Docs:</span>
+                <span className="text-text-secondary group-hover:text-text-primary transition-colors truncate">
+                  docs.pwnvader.com <span className="text-text-muted ml-1.5 sm:ml-2">· writeups</span>
+                </span>
+              </a>
+
               <a
                 href="https://www.linkedin.com/in/jesuspromero/"
                 target="_blank"
@@ -221,18 +246,35 @@ export default function Home() {
               <span className="text-accent">#</span> hacking.pwnvader.com
             </p>
             <p className="text-text-secondary leading-relaxed">
-              Subdominio hermano de{' '}
-              <a
-                href="https://pwnvader.com"
-                target="_blank"
-                rel="noreferrer noopener"
-                className="text-accent hover:text-accent/80 hover:underline inline-flex items-center gap-1 font-semibold"
-              >
-                pwnvader.com <ExternalLink className="h-3 w-3" />
-              </a>
-              . Mientras el principal es mi tarjeta como pentester, este es el laboratorio donde libero herramientas para la comunidad.
+              Una de las tres propiedades del ecosistema <span className="text-orange-400 font-semibold">pwnVader</span>.
+              Cada dominio cumple un rol específico — este es el laboratorio donde corren las
+              herramientas, los otros dos viven en los enlaces de abajo.
             </p>
-            <p className="text-text-secondary leading-relaxed">
+
+            {/* Ecosystem trinity table */}
+            <div className="grid gap-2 pt-1">
+              <EcosystemRow
+                href="https://pwnvader.com"
+                domain="pwnvader.com"
+                role="portfolio"
+                description="Perfil profesional, certificaciones y servicios de pentesting."
+              />
+              <EcosystemRow
+                href="https://hacking.pwnvader.com"
+                domain="hacking.pwnvader.com"
+                role="lab"
+                description="Suite serverless de herramientas tácticas (estás aquí)."
+                current
+              />
+              <EcosystemRow
+                href="https://docs.pwnvader.com"
+                domain="docs.pwnvader.com"
+                role="docs"
+                description="Writeups de HTB/THM, metodologías OWASP y guías paso a paso."
+              />
+            </div>
+
+            <p className="text-text-secondary leading-relaxed pt-3 border-t border-bg-line/40">
               <span className="text-accent">$</span> Stack: React + Vite + Tailwind, hosteado en GitHub Pages.
               El proxy CORS del auditor de CMS corre en un Cloudflare Worker propio — tú no configuras nada.
             </p>
@@ -247,27 +289,131 @@ export default function Home() {
         </Terminal>
       </section>
 
-      {/* Quick links */}
-      <section className="grid gap-4 sm:grid-cols-3 text-sm">
-        <QuickLink href="https://pwnvader.com" label="pwnvader.com" icon={<KaliIcon className="h-5 w-5" />} />
-        <QuickLink href="https://github.com/pwnVader" label="github.com/pwnVader" icon={<GithubIcon className="h-5 w-5" />} />
-        <QuickLink href="https://linkedin.com/in/jesusperezromero" label="linkedin/jesusperezromero" icon={<LinkedinIcon className="h-5 w-5" />} />
+      {/* Quick links — ecosystem + socials */}
+      <section className="space-y-3">
+        <div className="text-[10px] uppercase tracking-[0.16em] text-text-muted font-mono">
+          Ecosistema pwnVader
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3 text-sm">
+          <QuickLink
+            href="https://pwnvader.com"
+            label="pwnvader.com"
+            sublabel="portfolio"
+            icon={<KaliIcon className="h-5 w-5" />}
+          />
+          <QuickLink
+            href="https://docs.pwnvader.com"
+            label="docs.pwnvader.com"
+            sublabel="writeups · metodologías"
+            icon={<ExternalLink className="h-5 w-5" />}
+            accent
+          />
+          <QuickLink
+            href="https://github.com/pwnVader"
+            label="github.com/pwnVader"
+            sublabel="source code"
+            icon={<GithubIcon className="h-5 w-5" />}
+          />
+        </div>
       </section>
     </div>
   );
 }
 
-function QuickLink({ href, label, icon }: { href: string; label: string; icon: React.ReactNode }) {
+function QuickLink({
+  href,
+  label,
+  sublabel,
+  icon,
+  accent = false,
+}: {
+  href: string;
+  label: string;
+  sublabel?: string;
+  icon: React.ReactNode;
+  accent?: boolean;
+}) {
   return (
     <a
       href={href}
       target="_blank"
       rel="noreferrer noopener"
-      className="flex items-center gap-3 rounded-xl border border-bg-line bg-bg-card px-4 py-3.5 text-text-secondary transition-all duration-300 hover:border-accent/60 hover:text-accent hover:shadow-glow hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-accent/40"
+      className={cn(
+        'flex items-center gap-3 rounded-xl border bg-bg-card px-4 py-3.5 text-text-secondary transition-all duration-300 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-orange-500/40',
+        accent
+          ? 'border-orange-500/30 hover:border-orange-500/60 hover:text-orange-400 hover:shadow-[0_0_20px_-8px_rgba(251,146,60,0.6)]'
+          : 'border-bg-line hover:border-accent/60 hover:text-accent hover:shadow-glow'
+      )}
     >
-      <span className="text-accent transition-colors duration-300">{icon}</span>
-      <span className="font-mono font-medium">{label}</span>
+      <span
+        className={cn(
+          'transition-colors duration-300 flex-shrink-0',
+          accent ? 'text-orange-400' : 'text-accent'
+        )}
+      >
+        {icon}
+      </span>
+      <div className="min-w-0">
+        <div className="font-mono font-medium truncate">{label}</div>
+        {sublabel && (
+          <div className="text-[10px] uppercase tracking-wider text-text-muted font-mono mt-0.5 truncate">
+            {sublabel}
+          </div>
+        )}
+      </div>
     </a>
+  );
+}
+
+function EcosystemRow({
+  href,
+  domain,
+  role,
+  description,
+  current = false,
+}: {
+  href: string;
+  domain: string;
+  role: string;
+  description: string;
+  current?: boolean;
+}) {
+  const Wrapper = (props: { children: React.ReactNode }) =>
+    current ? (
+      <div className="grid grid-cols-[auto_1fr] gap-3 items-baseline rounded-md border border-orange-500/30 bg-orange-500/5 px-3 py-2">
+        {props.children}
+      </div>
+    ) : (
+      <a
+        href={href}
+        target="_blank"
+        rel="noreferrer noopener"
+        className="grid grid-cols-[auto_1fr] gap-3 items-baseline rounded-md border border-bg-line/60 bg-bg-elevated/20 px-3 py-2 transition hover:border-orange-500/40 hover:bg-orange-500/5"
+      >
+        {props.children}
+      </a>
+    );
+
+  return (
+    <Wrapper>
+      <div className="flex flex-col items-start min-w-0">
+        <span
+          className={cn(
+            'font-mono text-xs font-semibold truncate max-w-full',
+            current ? 'text-orange-400' : 'text-text-primary'
+          )}
+        >
+          {domain}
+        </span>
+        <span className="text-[9px] uppercase tracking-[0.14em] text-text-muted font-mono mt-0.5">
+          {role}
+          {current && <span className="text-orange-400 ml-1.5">· estás aquí</span>}
+        </span>
+      </div>
+      <p className="text-[11px] text-text-secondary leading-relaxed font-mono">
+        {description}
+      </p>
+    </Wrapper>
   );
 }
 

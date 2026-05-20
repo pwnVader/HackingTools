@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import { History as HistoryIcon } from 'lucide-react';
 import { cn } from '../lib/cn';
 import FloatingTerminal from './FloatingTerminal';
-import { KaliIcon } from './CustomIcons';
+import { KaliIcon, LinkedinIcon, GithubIcon, TikTokIcon } from './CustomIcons';
 
 const NAV = [
   { to: '/networking', label: 'networking', desc: 'subnetting · revshell · pivot' },
@@ -23,9 +23,16 @@ export default function Layout() {
   const cwd = useMemo(() => cwdFromPath(loc.pathname), [loc.pathname]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-bgBase text-textPrimary relative font-mono select-none overflow-x-hidden">
-      <Header cwd={cwd} />
-      
+    // overflow-x-clip en vez de overflow-x-hidden: clip NO crea contexto de
+    // scroll en hijos, por lo que las cabeceras position:sticky funcionan
+    // correctamente al hacer scroll vertical.
+    <div className="min-h-screen flex flex-col bg-bgBase text-textPrimary relative font-mono select-none overflow-x-clip">
+      {/* EcosystemStrip + Header viajan juntos pegados al top en todo scroll */}
+      <div className="sticky top-0 z-30">
+        <EcosystemStrip />
+        <Header cwd={cwd} />
+      </div>
+
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 md:py-10 z-10">
         <Outlet />
       </main>
@@ -36,9 +43,60 @@ export default function Layout() {
   );
 }
 
+/**
+ * Franja de ecosistema — visible siempre en la parte superior, antes del header.
+ *
+ * Tres pills (portfolio · lab · docs) que evidencian que el usuario está
+ * dentro del ecosistema pwnVader. La pill "lab" queda marcada como activa
+ * (este es el sitio del laboratorio); las otras dos son enlaces externos.
+ *
+ * Diseñado para replicarse 1:1 en pwnvader.com y docs.pwnvader.com — basta
+ * con cambiar cuál pill lleva el indicador "current".
+ */
+function EcosystemStrip() {
+  const links = [
+    { href: 'https://pwnvader.com', label: 'portfolio', current: false },
+    { href: 'https://hacking.pwnvader.com', label: 'lab', current: true },
+    { href: 'https://docs.pwnvader.com', label: 'docs', current: false },
+  ];
+  return (
+    <div className="border-b border-borderCustom/40 bg-bgBase/85 backdrop-blur text-[10px] font-mono uppercase tracking-[0.18em]">
+      <div className="mx-auto max-w-6xl px-4 py-1.5 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4 text-textMuted">
+          <span className="text-textMuted/60 hidden sm:inline">ecosystem</span>
+          <span className="text-textMuted/40 hidden sm:inline">·</span>
+          {links.map((l) =>
+            l.current ? (
+              <span
+                key={l.href}
+                className="text-orange-400 border-b border-orange-400 pb-0.5 -mb-0.5 font-bold"
+                aria-current="page"
+              >
+                {l.label}
+              </span>
+            ) : (
+              <a
+                key={l.href}
+                href={l.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-orange-400 transition-colors"
+              >
+                {l.label}
+              </a>
+            )
+          )}
+        </div>
+        <span className="hidden md:inline text-textMuted/40">pwnVader · v1</span>
+      </div>
+    </div>
+  );
+}
+
 function Header({ cwd }: { cwd: string }) {
   return (
-    <header className="border-b border-borderCustom bg-bgSurface/80 backdrop-blur z-20 sticky top-0">
+    // El sticky lo gestiona el contenedor padre en Layout — aquí sólo el visual.
+    <header className="border-b border-borderCustom bg-bgSurface/80 backdrop-blur">
       <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:justify-between">
         <Link to="/" className="flex items-center gap-3 group">
           <div className="flex items-center gap-1 bg-bgElevated border border-borderCustom rounded px-2.5 py-1 text-xs">
@@ -98,8 +156,10 @@ function Header({ cwd }: { cwd: string }) {
 
 function Footer() {
   return (
+    // pb-20 sm:pb-5 → reserva espacio en mobile para que el botón flotante
+    // del kali_shell no tape el contenido del footer al hacer scroll al fondo.
     <footer className="border-t border-borderCustom bg-bgSurface/50 backdrop-blur z-10 mt-auto">
-      <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-5 text-xs text-textSecondary md:flex-row md:items-center md:justify-between">
+      <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 pt-5 pb-20 sm:pb-5 text-xs text-textSecondary md:flex-row md:items-center md:justify-between">
         <div className="font-mono space-y-1">
           <div className="flex items-center gap-1.5">
             <span className="text-prompt-user">pwnvader㉿kali</span>
@@ -126,25 +186,70 @@ function Footer() {
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-4 font-mono">
-          <a
-            href="https://pwnvader.com"
-            target="_blank"
-            rel="noreferrer noopener"
-            className="hover:text-accent transition duration-200 flex items-center gap-1"
-          >
-            <span>pwnvader.com</span>
-          </a>
-          <a
-            href="https://github.com/pwnVader"
-            target="_blank"
-            rel="noreferrer noopener"
-            className="hover:text-accent transition duration-200 flex items-center gap-1"
-          >
-            <span>github</span>
-          </a>
+
+        {/* Bloque derecho: ecosistema (texto) + redes sociales (SVGs) */}
+        <div className="flex flex-col items-start md:items-end gap-3 font-mono">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <a
+              href="https://pwnvader.com"
+              target="_blank"
+              rel="noreferrer noopener"
+              className="hover:text-accent transition duration-200"
+            >
+              pwnvader.com
+            </a>
+            <a
+              href="https://docs.pwnvader.com"
+              target="_blank"
+              rel="noreferrer noopener"
+              className="hover:text-accent transition duration-200"
+              title="Writeups, metodologías y guías"
+            >
+              docs.pwnvader.com
+            </a>
+          </div>
+          <div className="flex items-center gap-2">
+            <SocialIcon
+              href="https://www.linkedin.com/in/jesuspromero/"
+              label="LinkedIn · jesuspromero"
+              icon={<LinkedinIcon className="h-4 w-4" />}
+            />
+            <SocialIcon
+              href="https://github.com/pwnVader"
+              label="GitHub · pwnVader"
+              icon={<GithubIcon className="h-4 w-4" />}
+            />
+            <SocialIcon
+              href="https://www.tiktok.com/@pwnvader"
+              label="TikTok · @pwnvader"
+              icon={<TikTokIcon className="h-4 w-4" />}
+            />
+          </div>
         </div>
       </div>
     </footer>
+  );
+}
+
+function SocialIcon({
+  href,
+  label,
+  icon,
+}: {
+  href: string;
+  label: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer noopener"
+      title={label}
+      aria-label={label}
+      className="inline-flex items-center justify-center h-8 w-8 rounded-md border border-borderCustom/60 bg-bgElevated/40 text-textMuted hover:text-orange-400 hover:border-orange-500/50 hover:bg-orange-500/5 transition duration-200"
+    >
+      {icon}
+    </a>
   );
 }

@@ -160,6 +160,18 @@ export function toMarkdown(r: AuditInput, p: CmsExportProfile): string {
   lines.push(
     '_Reporte generado de forma pasiva — solo se observaron respuestas HTTP, sin ejecutar exploits ni modificar nada en el sistema objetivo._'
   );
+  lines.push('');
+  lines.push(`### Ecosistema pwnVader`);
+  lines.push('');
+  lines.push(
+    `- 🏠 [pwnvader.com](https://pwnvader.com) — portfolio profesional y servicios de pentesting`
+  );
+  lines.push(
+    `- 🧪 [hacking.pwnvader.com](https://hacking.pwnvader.com) — laboratorio táctico (origen de este reporte)`
+  );
+  lines.push(
+    `- 📚 [docs.pwnvader.com](https://docs.pwnvader.com) — writeups, metodologías y guías de hardening`
+  );
 
   return lines.join('\n');
 }
@@ -735,7 +747,11 @@ export function toHtml(r: AuditInput, p: CmsExportProfile): string {
 
     <footer class="report-footer">
       <p>Reporte 100% pasivo · No se enviaron credenciales ni se modificó el sistema objetivo</p>
-      <p class="footer-small">Generado por <a href="https://hacking.pwnvader.com">hacking.pwnvader.com</a> — pwnVader</p>
+      <p class="footer-small">
+        Generado por <a href="https://hacking.pwnvader.com">hacking.pwnvader.com</a>
+        · metodologías y walkthroughs en <a href="https://docs.pwnvader.com">docs.pwnvader.com</a>
+        · perfil en <a href="https://pwnvader.com">pwnvader.com</a>
+      </p>
     </footer>
   </main>
   <script>${FILTER_SCRIPT}</script>

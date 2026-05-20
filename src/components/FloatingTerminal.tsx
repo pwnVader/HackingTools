@@ -17,8 +17,10 @@ const COMMANDS: Record<string, string> = {
   help          esta ayuda
   whoami        identidad
   ls            lista secciones
-  cd <sec>      navega a /networking | /cms | /encoders
-  open <tool>   atajo: subnet | revshell | wp | recipes | emoji
+  cd <sec>      navega a /networking | /cms | /encoders | /web | /cracking
+  open <tool>   atajo: subnet | revshell | wp | recipes | emoji | jwt | hashcat
+  docs          abre docs.pwnvader.com (writeups + metodologías)
+  portfolio     abre pwnvader.com (perfil profesional)
   uname         info del entorno
   date          fecha actual
   history       comandos pasados
@@ -29,8 +31,15 @@ const COMMANDS: Record<string, string> = {
   uname: 'pwnvader-toolkit 1.0 #1 SMP serverless x86_64 GNU/Linux',
   ls: `drwxr-xr-x  networking/
 drwxr-xr-x  cms/
+drwxr-xr-x  web/
+drwxr-xr-x  cracking/
 drwxr-xr-x  encoders/`,
   banner: BANNER,
+};
+
+const EXTERNAL_URLS: Record<string, { url: string; label: string }> = {
+  docs: { url: 'https://docs.pwnvader.com', label: 'docs.pwnvader.com' },
+  portfolio: { url: 'https://pwnvader.com', label: 'pwnvader.com' },
 };
 
 const TOOL_ROUTES: Record<string, string> = {
@@ -139,6 +148,12 @@ export default function FloatingTerminal() {
         return;
       }
       default: {
+        if (head in EXTERNAL_URLS) {
+          const { url, label } = EXTERNAL_URLS[head];
+          window.open(url, '_blank', 'noopener,noreferrer');
+          push(`→ ${label} (nueva pestaña)`, 'success');
+          return;
+        }
         if (head in COMMANDS) {
           push(COMMANDS[head]);
         } else {
