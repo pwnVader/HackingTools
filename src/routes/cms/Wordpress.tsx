@@ -591,7 +591,7 @@ const EXPORT_SECONDARY = cn(
 
 function Kv({ k, v, mono }: { k: string; v: string; mono?: boolean }) {
   return (
-    <div className="grid grid-cols-[140px_1fr] gap-3 items-baseline">
+    <div className="grid grid-cols-[100px_1fr] sm:grid-cols-[140px_1fr] gap-3 items-baseline">
       <span className="text-[11px] uppercase tracking-widest text-fg-muted font-bold">{k}</span>
       <span className={cn('text-fg break-all', mono && 'font-mono text-sm')}>{v}</span>
     </div>

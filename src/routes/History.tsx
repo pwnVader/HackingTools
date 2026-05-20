@@ -281,7 +281,7 @@ function AuditRow({ entry }: { entry: AuditEntry }) {
       : 'text-accent-red';
 
   return (
-    <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3 px-4 py-3 hover:bg-bgElevated/40 transition">
+    <div className="grid grid-cols-[auto_1fr] sm:grid-cols-[auto_1fr_auto] items-center gap-x-3 gap-y-1.5 px-4 py-3 hover:bg-bgElevated/40 transition">
       <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-accent/10 border border-accent/30 flex-shrink-0">
         <ShieldAlert className="h-3.5 w-3.5 text-accent" />
       </span>
@@ -295,7 +295,7 @@ function AuditRow({ entry }: { entry: AuditEntry }) {
           </span>
         </div>
       </div>
-      <span className="text-[11px] text-textMuted font-mono flex-shrink-0">
+      <span className="text-[11px] text-textMuted font-mono flex-shrink-0 col-start-2 sm:col-start-auto">
         {relativeTime(entry.ts)}
       </span>
     </div>
@@ -312,7 +312,7 @@ function RevshellRow({ entry }: { entry: RevshellEntry }) {
     });
   };
   return (
-    <div className="grid grid-cols-[auto_1fr_auto_auto] items-center gap-3 px-4 py-3 hover:bg-bgElevated/40 transition">
+    <div className="grid grid-cols-[auto_1fr] sm:grid-cols-[auto_1fr_auto_auto] items-center gap-x-3 gap-y-2 px-4 py-3 hover:bg-bgElevated/40 transition">
       <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-accent-peach/10 border border-accent-peach/30 flex-shrink-0">
         <TerminalIcon className="h-3.5 w-3.5 text-accent-peach" />
       </span>
@@ -339,6 +339,7 @@ function RevshellRow({ entry }: { entry: RevshellEntry }) {
         onClick={copy}
         className={cn(
           'inline-flex items-center gap-1 rounded border px-2 py-1 text-[10px] font-mono uppercase tracking-wider transition',
+          'col-start-2 sm:col-start-auto justify-self-start sm:justify-self-auto',
           copied
             ? 'border-accent-green/60 bg-accent-green/10 text-accent-green'
             : 'border-borderCustom text-textMuted hover:text-accent hover:border-accent/50'
@@ -347,7 +348,7 @@ function RevshellRow({ entry }: { entry: RevshellEntry }) {
         {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
         {copied ? 'copiado' : 'copiar'}
       </button>
-      <span className="text-[11px] text-textMuted font-mono flex-shrink-0">
+      <span className="text-[11px] text-textMuted font-mono flex-shrink-0 col-start-2 sm:col-start-auto">
         {relativeTime(entry.ts)}
       </span>
     </div>

@@ -26,7 +26,7 @@ export default function ToolCard({
   const inner = (
     <div
       className={cn(
-        'group relative flex h-full flex-col rounded-xl border border-bg-line bg-bg-card p-6 transition-all duration-300',
+        'group relative flex h-full flex-col rounded-xl border border-bg-line bg-bg-card p-5 sm:p-6 transition-all duration-300',
         ready
           ? 'hover:border-orange-500/50 hover:shadow-glow hover:-translate-y-1 cursor-pointer'
           : 'opacity-50 cursor-not-allowed border-bg-line/40',

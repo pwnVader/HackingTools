@@ -124,7 +124,7 @@ export default function Subnet() {
 function Row({ label, value, mono = true }: { label: string; value: string | number; mono?: boolean }) {
   const v = String(value);
   return (
-    <div className="grid grid-cols-[140px_1fr_auto] items-center gap-3 border-b border-bg-line/40 px-4 py-3 last:border-0 hover:bg-bg-soft/20 transition-colors duration-200">
+    <div className="grid grid-cols-[100px_1fr_auto] sm:grid-cols-[140px_1fr_auto] items-center gap-3 border-b border-bg-line/40 px-4 py-3 last:border-0 hover:bg-bg-soft/20 transition-colors duration-200">
       <span className="text-xs uppercase tracking-wider text-text-secondary font-bold font-mono">{label}</span>
       <span className={cn('text-sm text-text-primary break-all', mono && 'font-mono')}>{v}</span>
       <CopyButton value={v} label="" size="sm" />

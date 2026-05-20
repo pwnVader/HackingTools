@@ -31,6 +31,14 @@ export default function NetworkingIndex() {
           description: 'Diseñador 3-columnas (Kali → Pivot → Target) para Chisel, SSH (-D/-L/-R) y Ligolo-ng. Comandos exactos por nodo.',
           icon: <Workflow className="h-5 w-5" />,
         },
+        {
+          to: '#',
+          command: './c2-builder',
+          title: 'C2 Profile Builder',
+          description: 'Modelador interactivo de C2 Malleable Profiles para CobaltStrike y Havoc C2. Generación de reglas de evasión.',
+          status: 'soon',
+          icon: <Workflow className="h-5 w-5" />,
+        },
       ]}
     />
   );

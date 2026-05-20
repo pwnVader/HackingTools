@@ -40,6 +40,7 @@ export default {
           soft: '#181825',      // Mantle
           card: '#181825',      // Mantle
           line: '#45475a',      // Surface1
+          elevated: '#313244',  // Surface0 (Catppuccin Mocha Surface0 for hover effects)
         },
         fg: {
           DEFAULT: '#cdd6f4',   // Text

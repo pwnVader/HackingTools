@@ -17,10 +17,10 @@ export default function Home() {
       <section className="flex flex-col">
         <Prompt cwd="~" command="./toolkit --info" className="mb-8" />
         <div className="space-y-6 mt-2">
-          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-textPrimary leading-tight font-mono">
+          <h1 className="text-4xl sm:text-6xl md:text-8xl font-extrabold tracking-tight text-textPrimary leading-tight font-mono">
             Toolkit serverless de{' '}
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-400 to-orange-500">
-              ciberseguridad.
+              Ciberseguridad.
             </span>
           </h1>
           <p className="text-lg text-zinc-400 leading-relaxed max-w-2xl font-mono">
@@ -29,7 +29,7 @@ export default function Home() {
           </p>
         </div>
       </section>
-
+ 
       {/* Tools */}
       <section className="space-y-6">
         <div>
@@ -46,7 +46,7 @@ export default function Home() {
                 Subnet calculator, reverse shells multi-lenguaje y arquitecto de túneles (Chisel · SSH · Ligolo).{' '}
                 <span className="block mt-1.5 text-xs text-zinc-400/80">
                   + C2 Malleable Profile Builder
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-orange-400 border border-orange-500/30 bg-orange-500/10 px-1.5 py-0.5 rounded ml-2 inline-block">Coming Soon</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-orange-400 border border-orange-500/30 bg-orange-500/10 px-1.5 py-0.5 rounded ml-2 mt-2 inline-block">Coming Soon</span>
                 </span>
               </span>
             }
@@ -61,7 +61,7 @@ export default function Home() {
                 Auditoría pasiva de WordPress, Joomla y Drupal con refs OWASP/CWE/CVE y reportes profesionales.{' '}
                 <span className="block mt-1.5 text-xs text-zinc-400/80">
                   + Atlassian (Confluence/Jira) y Liferay
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-orange-400 border border-orange-500/30 bg-orange-500/10 px-1.5 py-0.5 rounded ml-2 inline-block">Coming Soon</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-orange-400 border border-orange-500/30 bg-orange-500/10 px-1.5 py-0.5 rounded ml-2 mt-2 inline-block">Coming Soon</span>
                 </span>
               </span>
             }
@@ -79,10 +79,10 @@ export default function Home() {
 
       {/* Fastfetch Section */}
       <section className="space-y-4">
-        <Prompt command="fastfetch" />
-        <div className="flex flex-col md:flex-row gap-8 items-start my-6 p-4 bg-[#0f111a]/50 rounded-lg border border-white/5 font-mono">
+        <Prompt cwd="~" command="fastfetch" />
+        <div className="flex flex-col md:flex-row gap-8 items-start my-6 p-4 bg-[#0f111a]/50 rounded-lg border border-white/5 font-mono max-w-3xl mx-auto w-full">
           {/* Columna Izquierda (Logo) */}
-          <pre className="text-orange-500 font-mono text-[10px] md:text-xs leading-none select-none">
+          <pre className="text-orange-500 font-mono text-[10px] md:text-xs leading-none select-none shrink-0" aria-hidden="true">
 {`..............
             ..,;:ccc,.
           ......''';lxO.
@@ -90,56 +90,123 @@ export default function Home() {
            .';;;:::;,,.x,
       ..'''.            0Xxoc:,.  ...
   ....                ,ONkc;,;cokOdc',.
- .                  .OMo           ':ddo.
-                    dM[             .oOc
-                    0M.            .;ld.
-                    ;@M:         .;ldo.
-                     :MMo      .;ldo.
-                      ;MMo   .;ldo.
-                       :MMo.;ldo.
-                        :MMdxo.
-                         'XMx.
-                           .`}
+ .                   OMo           ':ddo.
+                    dMc               :OO;
+                    0M.                 .:o.
+                    ;Wd
+                     ;XO,
+                       ,d0Odlc;,..
+                           ..',;:cdOOd::,.
+                                    .:d;.'::.
+                                       'd,  .'
+                                         ;l   ..
+                                          .o
+                                            c
+                                            .'
+                                             .`}
           </pre>
 
           {/* Columna Derecha (Info de Usuario) */}
-          <div className="flex-1 min-w-0">
-            <h3 className="text-orange-400 font-bold text-lg">root@pwnvader</h3>
-            <div className="text-zinc-500 my-1">-------------------------</div>
+          <div className="flex-1 min-w-0 space-y-1">
+            <p className="text-base font-bold text-orange-400">
+              root@pwnvader
+            </p>
+            <p className="text-text-muted/60 select-none leading-none">--------------------------------</p>
             
-            <div className="grid grid-cols-[100px_1fr] gap-y-1 text-sm text-zinc-300 mt-2 font-mono">
-              <span className="text-orange-400 font-semibold">LinkedIn:</span>
-              <span>jesuspromero · 2.3K</span>
+            <div className="space-y-0.5 pt-1 text-xs sm:text-sm">
+              <a
+                href="https://www.linkedin.com/in/jesuspromero/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-baseline gap-1 sm:gap-2 rounded px-1.5 -mx-1.5 py-0.5 transition-colors hover:bg-bg-elevated/40"
+              >
+                <span className="font-bold shrink-0 text-orange-400" style={{ minWidth: '12ch' }}>LinkedIn:</span>
+                <span className="text-text-secondary group-hover:text-text-primary transition-colors truncate">
+                  jesuspromero <span className="text-text-muted ml-1.5 sm:ml-2">· 2.3K</span>
+                </span>
+              </a>
               
-              <span className="text-orange-400 font-semibold">TikTok:</span>
-              <span>@pwnvader · 28.3K</span>
+              <a
+                href="https://www.tiktok.com/@pwnvader"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-baseline gap-1 sm:gap-2 rounded px-1.5 -mx-1.5 py-0.5 transition-colors hover:bg-bg-elevated/40"
+              >
+                <span className="font-bold shrink-0 text-orange-400" style={{ minWidth: '12ch' }}>TikTok:</span>
+                <span className="text-text-secondary group-hover:text-text-primary transition-colors truncate">
+                  @pwnvader <span className="text-text-muted ml-1.5 sm:ml-2">· 28.3K</span>
+                </span>
+              </a>
               
-              <span className="text-orange-400 font-semibold">GitHub:</span>
-              <a href="https://github.com/pwnVader" target="_blank" rel="noreferrer noopener" className="hover:text-orange-400 hover:underline">pwnvader</a>
+              <a
+                href="https://github.com/pwnvader"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-baseline gap-1 sm:gap-2 rounded px-1.5 -mx-1.5 py-0.5 transition-colors hover:bg-bg-elevated/40"
+              >
+                <span className="font-bold shrink-0 text-orange-400" style={{ minWidth: '12ch' }}>GitHub:</span>
+                <span className="text-text-secondary group-hover:text-text-primary transition-colors truncate">
+                  pwnvader
+                </span>
+              </a>
               
-              <span className="text-orange-400 font-semibold">Medium:</span>
-              <span>@pwnvader</span>
+              <a
+                href="https://medium.com/@pwnvader"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-baseline gap-1 sm:gap-2 rounded px-1.5 -mx-1.5 py-0.5 transition-colors hover:bg-bg-elevated/40"
+              >
+                <span className="font-bold shrink-0 text-orange-400" style={{ minWidth: '12ch' }}>Medium:</span>
+                <span className="text-text-secondary group-hover:text-text-primary transition-colors truncate">
+                  @pwnvader
+                </span>
+              </a>
               
-              <span className="text-orange-400 font-semibold">TryHackMe:</span>
-              <span>pwnVader · Top 1%</span>
+              <a
+                href="https://tryhackme.com/p/pwnVader"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-baseline gap-1 sm:gap-2 rounded px-1.5 -mx-1.5 py-0.5 transition-colors hover:bg-bg-elevated/40"
+              >
+                <span className="font-bold shrink-0 text-orange-400" style={{ minWidth: '12ch' }}>TryHackMe:</span>
+                <span className="text-text-secondary group-hover:text-text-primary transition-colors truncate">
+                  pwnVader <span className="text-text-muted ml-1.5 sm:ml-2">· Top 1%</span>
+                </span>
+              </a>
               
-              <span className="text-orange-400 font-semibold">HackTheBox:</span>
-              <span>pwnVader</span>
+              <a
+                href="https://app.hackthebox.com/users/1247070"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-baseline gap-1 sm:gap-2 rounded px-1.5 -mx-1.5 py-0.5 transition-colors hover:bg-bg-elevated/40"
+              >
+                <span className="font-bold shrink-0 text-orange-400" style={{ minWidth: '12ch' }}>HackTheBox:</span>
+                <span className="text-text-secondary group-hover:text-text-primary transition-colors truncate">
+                  pwnVader
+                </span>
+              </a>
               
-              <span className="text-orange-400 font-semibold">Email:</span>
-              <a href="mailto:contacto@pwnvader.com" className="hover:text-orange-400 hover:underline">contacto@pwnvader.com</a>
+              <a
+                href="mailto:contacto@pwnvader.com"
+                className="group flex items-baseline gap-1 sm:gap-2 rounded px-1.5 -mx-1.5 py-0.5 transition-colors hover:bg-bg-elevated/40"
+              >
+                <span className="font-bold shrink-0 text-orange-400" style={{ minWidth: '12ch' }}>Email:</span>
+                <span className="text-text-secondary group-hover:text-text-primary transition-colors truncate">
+                  contacto@pwnvader.com
+                </span>
+              </a>
             </div>
-
-            {/* Simulating Terminal Color Palette with Graphite & Ember accents */}
-            <div className="flex flex-wrap gap-2 mt-4 select-none">
-              <div className="h-4 w-4 rounded bg-[#11111b] border border-white/10" />
-              <div className="h-4 w-4 rounded bg-[#313244]" />
-              <div className="h-4 w-4 rounded bg-orange-500" />
-              <div className="h-4 w-4 rounded bg-amber-500" />
-              <div className="h-4 w-4 rounded bg-red-500" />
-              <div className="h-4 w-4 rounded bg-emerald-500" />
-              <div className="h-4 w-4 rounded bg-sky-500" />
-              <div className="h-4 w-4 rounded bg-zinc-300" />
+            
+            {/* Color palette row — fastfetch signature */}
+            <div className="flex flex-wrap gap-1.5 pt-3" aria-hidden="true">
+              <span className="w-5 h-2.5 bg-[#1e1e2e] border border-border/40"></span>
+              <span className="w-5 h-2.5 bg-[#f38ba8]"></span>
+              <span className="w-5 h-2.5 bg-[#a6e3a1]"></span>
+              <span className="w-5 h-2.5 bg-[#f9e2af]"></span>
+              <span className="w-5 h-2.5 bg-[#89b4fa]"></span>
+              <span className="w-5 h-2.5 bg-[#cba6f7]"></span>
+              <span className="w-5 h-2.5 bg-[#94e2d5]"></span>
+              <span className="w-5 h-2.5 bg-[#cdd6f4]"></span>
             </div>
           </div>
         </div>
