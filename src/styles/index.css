@@ -15,7 +15,7 @@
   body {
     background-color: #11111b;
     background-image:
-      radial-gradient(circle at 10% 10%, rgba(203, 166, 247, 0.035), transparent 45%),
+      radial-gradient(circle at 10% 10%, rgba(251, 146, 60, 0.035), transparent 45%),
       radial-gradient(circle at 90% 80%, rgba(116, 199, 236, 0.025), transparent 50%),
       radial-gradient(circle at 50% 50%, rgba(166, 227, 161, 0.015), transparent 60%);
     background-attachment: fixed;
@@ -46,8 +46,8 @@
     position: fixed;
     top: 0; left: 0; right: 0;
     height: 2px;
-    background: rgba(203, 166, 247, 0.06);
-    box-shadow: 0 0 10px rgba(203, 166, 247, 0.2);
+    background: rgba(251, 146, 60, 0.06);
+    box-shadow: 0 0 10px rgba(251, 146, 60, 0.2);
     z-index: 99998;
     pointer-events: none;
     animation: scan-beam 8s linear infinite;
@@ -59,7 +59,7 @@
   }
 
   ::selection {
-    background: rgba(203, 166, 247, 0.25);
+    background: rgba(251, 146, 60, 0.25);
     color: #ffffff;
   }
 
@@ -87,7 +87,7 @@
     content: '▊';
     display: inline-block;
     margin-left: 4px;
-    color: #cba6f7; /* Mauve */
+    color: #fb923c; /* Orange-400 */
     animation: blink 1.2s steps(2, start) infinite;
   }
 
@@ -109,12 +109,12 @@
   /* Animación de respiración de neón para la consola táctica flotante */
   @keyframes pulse-glow {
     0%, 100% {
-      box-shadow: 0 0 0 1px rgba(203, 166, 247, 0.25), 0 0 8px -2px rgba(203, 166, 247, 0.3);
-      border-color: rgba(203, 166, 247, 0.3);
+      box-shadow: 0 0 0 1px rgba(251, 146, 60, 0.25), 0 0 8px -2px rgba(251, 146, 60, 0.3);
+      border-color: rgba(251, 146, 60, 0.3);
     }
     50% {
-      box-shadow: 0 0 0 2px rgba(203, 166, 247, 0.45), 0 0 16px 2px rgba(203, 166, 247, 0.55);
-      border-color: rgba(203, 166, 247, 0.75);
+      box-shadow: 0 0 0 2px rgba(251, 146, 60, 0.45), 0 0 16px 2px rgba(251, 146, 60, 0.55);
+      border-color: rgba(251, 146, 60, 0.75);
     }
   }
   .animate-pulse-glow {

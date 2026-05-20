@@ -47,14 +47,14 @@ export default {
           dim: '#7f849c',       // Overlay1
         },
         prompt: {
-          user: '#a6e3a1',      // Green
+          user: '#f59e0b',      // Amber-500 (New warm prompt user)
           path: '#bac2de',      // Subtext1
-          sym: '#cba6f7',       // Mauve (Morado Claro)
+          sym: '#fb923c',       // Orange-400 (New Accent)
         },
         accent: {
-          DEFAULT: '#cba6f7',   // Mauve (Morado Claro)
-          mauve: '#cba6f7',     // Mauve
-          purple: '#cba6f7',    // Mauve
+          DEFAULT: '#fb923c',   // Orange-400 (New Accent)
+          mauve: '#fb923c',     // Orange-400 (New Accent)
+          purple: '#fb923c',    // Orange-400 (New Accent)
           sapphire: '#74c7ec',  // Sapphire (Azul Brillante)
           blue: '#74c7ec',      // Sapphire (Azul Brillante)
           green: '#a6e3a1',     // Green (Éxito)
@@ -65,7 +65,7 @@ export default {
         },
       },
       boxShadow: {
-        glow: '0 0 0 1px rgba(203, 166, 247, 0.2), 0 0 24px -8px rgba(203, 166, 247, 0.35)',
+        glow: '0 0 0 1px rgba(251, 146, 60, 0.2), 0 0 24px -8px rgba(251, 146, 60, 0.35)',
         glowBlue: '0 0 0 1px rgba(116, 199, 236, 0.2), 0 0 24px -8px rgba(116, 199, 236, 0.35)',
         glowGreen: '0 0 0 1px rgba(166, 227, 161, 0.2), 0 0 24px -8px rgba(166, 227, 161, 0.35)',
         glowRed: '0 0 0 1px rgba(243, 139, 168, 0.2), 0 0 24px -8px rgba(243, 139, 168, 0.35)',

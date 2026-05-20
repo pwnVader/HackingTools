@@ -22,7 +22,7 @@ export default function Home() {
         <div className="space-y-6 mt-2">
           <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-textPrimary leading-tight font-mono">
             Toolkit serverless de{' '}
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-indigo-400">
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-400 to-orange-500">
               ciberseguridad.
             </span>
           </h1>
@@ -44,28 +44,60 @@ export default function Home() {
             to="/networking"
             command="cd networking/"
             title="Networking"
-            description="Subnet calculator, reverse shells multi-lenguaje y arquitecto de túneles para pivotaje (Chisel · SSH · Ligolo)."
+            description={
+              <span>
+                Subnet calculator, reverse shells multi-lenguaje y arquitecto de túneles (Chisel · SSH · Ligolo).{' '}
+                <span className="block mt-1.5 text-xs text-zinc-400/80">
+                  + C2 Malleable Profile Builder
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-orange-400 border border-orange-500/30 bg-orange-500/10 px-1.5 py-0.5 rounded ml-2 inline-block">Coming Soon</span>
+                </span>
+              </span>
+            }
             icon={<Network className="h-5 w-5" />}
           />
           <ToolCard
             to="/cms"
             command="cd cms-audit/"
             title="CMS Audit"
-            description="Auditoría pasiva de WordPress, Joomla y Drupal con refs OWASP/CWE/CVE y reportes HTML/PDF/Markdown profesionales."
+            description={
+              <span>
+                Auditoría pasiva de WordPress, Joomla y Drupal con refs OWASP/CWE/CVE y reportes profesionales.{' '}
+                <span className="block mt-1.5 text-xs text-zinc-400/80">
+                  + Atlassian (Confluence/Jira) y Liferay
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-orange-400 border border-orange-500/30 bg-orange-500/10 px-1.5 py-0.5 rounded ml-2 inline-block">Coming Soon</span>
+                </span>
+              </span>
+            }
             icon={<ShieldAlert className="h-5 w-5" />}
           />
           <ToolCard
             to="/web"
             command="cd web/"
             title="Web"
-            description="JWT Attacker: editor visual de tokens con ataques de un clic (alg:none, privilege escalation). Más vectores próximamente."
+            description={
+              <span>
+                JWT Attacker: editor visual de tokens con ataques de un clic (alg:none, privilege escalation).{' '}
+                <span className="block mt-1.5 text-xs text-zinc-400/80">
+                  + CSP Bypass Analyzer & CORS PoC Generator
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-orange-400 border border-orange-500/30 bg-orange-500/10 px-1.5 py-0.5 rounded ml-2 inline-block">Coming Soon</span>
+                </span>
+              </span>
+            }
             icon={<ShieldOff className="h-5 w-5" />}
           />
           <ToolCard
             to="/cracking"
             command="cd cracking/"
             title="Cracking"
-            description="Hashcat Mask Builder: catálogo de hash modes, constructor visual de máscaras (?u?l?d?s + literales) y comando completo."
+            description={
+              <span>
+                Hashcat Mask Builder: catálogo de hash modes, constructor visual de máscaras (?u?l?d?s + literales).{' '}
+                <span className="block mt-1.5 text-xs text-zinc-400/80">
+                  + Offline Hash Identifier & .rule Builder
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-orange-400 border border-orange-500/30 bg-orange-500/10 px-1.5 py-0.5 rounded ml-2 inline-block">Coming Soon</span>
+                </span>
+              </span>
+            }
             icon={<KeyRound className="h-5 w-5" />}
           />
           <ToolCard

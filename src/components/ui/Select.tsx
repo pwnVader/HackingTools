@@ -7,9 +7,9 @@ interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
 }
 
 // Chevron SVG inline — encoded for tailwind arbitrary bg-image value.
-// Stroke uses Catppuccin Mauve (#cba6f7) to coordinate with the core accent
+// Stroke uses corporate Orange-400 (#fb923c) to coordinate with the core accent
 const CHEVRON =
-  "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23cba6f7' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>\")";
+  "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23fb923c' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>\")";
 
 const Select = forwardRef<HTMLSelectElement, SelectProps>(
   ({ label, options, className, id, ...rest }, ref) => {
