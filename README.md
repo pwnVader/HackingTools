@@ -1,63 +1,54 @@
-# hacking.pwnvader.com
+# hacking.pwnvader.com — Laboratorio de Ciberseguridad Serverless
 
-Herramientas de ciberseguridad serverless. Hermano técnico de [pwnvader.com](https://pwnvader.com).
+Este repositorio contiene el código fuente de **hacking.pwnvader.com**, un laboratorio de herramientas técnicas de ciberseguridad y auditoría web ofensiva/defensiva de alto rendimiento que se ejecutan de manera 100% serverless dentro del navegador. 
 
-Todo corre en el navegador (React + Vite, build estático en GitHub Pages). Lo único que sale del cliente son las requests del auditor de CMS, que pasan por un Cloudflare Worker propio (carpeta `worker/`).
+Diseñado específicamente para analistas de seguridad, pentesters y entusiastas de CTF, este espacio reúne herramientas tácticas esenciales que optimizan y automatizan tareas rutinarias de reconocimiento, evasión de restricciones de red y encoding.
 
-## Secciones
+---
 
-- **Networking** — calculadora de subnetting IPv4 y generador de reverse shells multi-lenguaje.
-- **CMS Audit** — auditor pasivo de WordPress (cabeceras, endpoints, enumeración, versión, score propio). Próximamente Joomla y Drupal.
-- **Encoders** — recetas estilo CyberChef (Base64, URL, Hex, ROT, hashes, JWT) y feature distintiva: ocultar mensajes invisibles dentro de un emoji vía Unicode tag chars.
+## 🛠️ Arquitectura y Stack Tecnológico
 
-Atajo: `~` (o `Ctrl+\``) abre un shell flotante en cualquier página para navegar con comandos (`cd networking`, `open wp`, etc.).
+El proyecto está diseñado bajo un modelo completamente estático del lado del cliente, maximizando la privacidad y minimizando la latencia:
 
-## Desarrollo
+- **Core Framework**: [React 18](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/) para interfaces reactivas estructuradas y robustas.
+- **Build System**: [Vite](https://vitejs.dev/) para empaquetamiento ultrarrápido y óptimo.
+- **Estilos & UI**: [Tailwind CSS](https://tailwindcss.com/) configurado bajo una estética premium *Graphite & Ember* y diseño táctico retro-CRT de baja fatiga ocular.
+- **Servicios Backend (Serverless)**:
+  - **Cloudflare Workers**: Proxy inverso y proxy CORS seguro y ligero para la auditoría y enumeración pasiva de CMS (WordPress, Joomla, Drupal) sin almacenar información en tránsito.
+- **Deployment**: [GitHub Pages](https://pages.github.com/) mediante flujos integrados de integración y despliegue continuo (CI/CD) con GitHub Actions.
 
-```bash
-npm install
-npm run dev          # http://localhost:5173
-npm run build        # genera dist/
-npm run preview      # sirve dist/ localmente
-npm run typecheck    # tsc sin emit
-```
+---
 
-## Deploy
+## 🔌 Módulos del Laboratorio
 
-GitHub Actions builda y publica a Pages en cada push a `main` (workflow en `.github/workflows/deploy.yml`).
+1. **Networking**: Calculadora dinámica de subnetting IPv4 con desglose binario de máscaras y generador interactivo de reverse shells multi-lenguaje.
+2. **CMS Audit**: Auditoría pasiva automatizada de gestores de contenido (WordPress, Joomla y Drupal), analizando cabeceras de seguridad HTTP, detectando versiones exactas y enumerando directorios y archivos de configuración desprotegidos.
+3. **Encoders & Emojis**: Conversión de recetas de codificación (CyberChef style) y ocultamiento esteganográfico de mensajes invisibles dentro de emojis a través de Unicode tag chars.
 
-Requisitos en el repo:
-1. **Settings → Pages → Source:** _GitHub Actions_.
-2. **Settings → Pages → Custom domain:** `hacking.pwnvader.com` (CNAME ya en `public/`).
-3. DNS del subdominio apuntando a `pwnvader.github.io` (CNAME en tu DNS provider).
+---
 
-### Cloudflare Worker (auditor CMS)
+## 🌐 Ecosistema pwnVader
 
-```bash
-cd worker
-npm install
-npx wrangler login
-npx wrangler deploy
-```
+Para mantener la cohesión técnica e interlinking dentro de nuestra red, puedes navegar entre las diferentes plataformas del ecosistema:
 
-Anota la URL devuelta y pégala en la UI del auditor (input "URL del Cloudflare Worker"). Se guarda en localStorage. Alternativa: build con `VITE_WORKER_URL=https://...` y queda hardcoded como default.
+- **[pwnvader.com](https://pwnvader.com)**: **Portafolio Principal** — Mi perfil profesional, certificaciones y trayectoria como Pentester y Consultor de Ciberseguridad.
+- **[hacking.pwnvader.com](https://hacking.pwnvader.com)**: **Laboratorio Táctico** — Suite interactiva y serverless de herramientas ofensivas/defensivas *(este repositorio)*.
+- **[docs.pwnvader.com](https://docs.pwnvader.com)**: **Base de Conocimientos** — Notas técnicas detalladas de vulnerabilidades, guías paso a paso de OPSEC y writeups de CTFs.
 
-## Stack
+---
 
-- Vite + React 18 + TypeScript + Tailwind CSS
-- react-router-dom (BrowserRouter, fallback `404.html` para SPA en Pages)
-- Cloudflare Workers (proxy CORS, opcional, solo para CMS Audit)
+## ⚠️ Disclaimer / OPSEC
 
-## Privacidad
+El uso de las herramientas de este laboratorio con fines ofensivos sobre sistemas sobre los cuales no se cuenta con autorización previa y por escrito es estrictamente ilegal y constituye un delito. 
 
-- Sin tracking, sin cookies, sin analytics.
-- Toda la configuración se guarda en `localStorage` (clic derecho → inspeccionar para auditar).
-- El auditor de CMS pasa por el Worker pero el Worker no almacena nada (su única persistencia es opcional para rate limiting, y por ahora ni eso).
+Este proyecto ha sido desarrollado exclusivamente con propósitos educativos, de investigación técnica y para su uso en auditorías de seguridad autorizadas (Ethical Hacking y Red Teaming). El autor no se hace responsable del mal uso o de los daños derivados de la aplicación práctica de la información y utilidades contenidas en este repositorio.
 
-## Uso ético
+---
 
-Auditoría exclusivamente sobre sistemas propios o con permiso escrito. Los payloads de reverse shell y el auditor de WordPress no son juguetes: el acceso no autorizado es delito.
+## ✉️ Contacto e Interacción
 
-## Autor
+Si quieres conocer más sobre mis proyectos de ciberseguridad, consultar servicios profesionales de pentesting o interactuar con la comunidad:
 
-[pwnVader](https://pwnvader.com) · Jesús Pérez Romero.
+- **LinkedIn**: [jesuspromero](https://www.linkedin.com/in/jesuspromero/)
+- **GitHub**: [pwnvader](https://github.com/pwnvader)
+- **E-Mail**: [contacto@pwnvader.com](mailto:contacto@pwnvader.com)
